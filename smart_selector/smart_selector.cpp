@@ -13,99 +13,112 @@
 
 #include "smart_selector.h"
 
-namespace BT
-{
+namespace BT {
+
 SmartSelector::SmartSelector(const std::string& name, bool make_asynch)
-  : ControlNode::ControlNode(name, {}), current_child_idx_(0), asynch_(make_asynch)
+: ControlNode::ControlNode(name, {}), asynch_(make_asynch)
 {
-  // An async control node returns "running" after finishing a synchronous child
-  // This allows it to be interrupted even in between child ticks
-  // A non async control node with only synchronous children cannot be interrupted
-  if(asynch_)
-    setRegistrationID("AsyncSmartSelector");
-  else
-    setRegistrationID("SmartSelector");
+	// An async control node returns "running" after finishing a synchronous child
+	// This allows it to be interrupted even in between child ticks
+	// A non async control node with only synchronous children cannot be interrupted
+	if(asynch_)
+		setRegistrationID("AsyncSmartSelector");
+	else
+		setRegistrationID("SmartSelector");
 }
 
 // This method gets called whenever we tick this node
-NodeStatus SmartSelector::tick()
-{
-  // children_nodes_ is a vector of TreeNodes
-  const size_t children_count = children_nodes_.size();
+NodeStatus SmartSelector::tick() {
+	// Read input ports
+	std::vector<float> input_data;
+	getInput("input_data", input_data);
+	float utility_threshold;
+	getInput("utility_threshold", utility_threshold);
 
-  // BTCPP says custom nodes should never return idle
-  // Status is only idle when ticking for the first time
-  if(status() == NodeStatus::IDLE)
-  {
-    skipped_count_ = 0;
-  }
+	// children_nodes_ is a vector of TreeNodes
+	const size_t children_count = children_nodes_.size();
 
-  setStatus(NodeStatus::RUNNING);
+	// BTCPP says custom nodes should never return idle
+	// Status is only idle when ticking for the first time
+	// if(status() == NodeStatus::IDLE) {
+	// 	skipped_count_ = 0;
+	// }
 
-  // Get utility scores
-  const std::vector<float> utilities = decision_module->getUtilities(input_data);
+	setStatus(NodeStatus::RUNNING);
 
-  // Loop is in case of a skipped child
-  // Should only tick one node per input tick
-  while(current_child_idx_ < children_count)
-  {
-    TreeNode* current_child_node = children_nodes_[current_child_idx_];
+	// Get utility scores
+	const std::vector<float> utilities = decision_module->getUtilities(input_data);
 
-    auto prev_status = current_child_node->status();
-    const NodeStatus child_status = current_child_node->executeTick();
+	// Create pair vector of utilities and nodes
+	std::vector<std::pair<float, TreeNode*>> util_node_pairs;
+	for (size_t i = 0; i < utilities.size(); i++) {
+		std::pair<float, TreeNode*> new_pair;
+		new_pair.first = utilities[i];
+		new_pair.second = children_nodes_[i];
+		util_node_pairs.push_back(new_pair);
+	}
 
-    switch(child_status)
-    {
-      case NodeStatus::RUNNING: {
-        // If child is running, return running
-        return child_status;
-      }
-      case NodeStatus::SUCCESS: {
-        // If success, halt and reset all children then return success
-        resetChildren();
-        current_child_idx_ = 0;
-        return child_status;
-      }
-      case NodeStatus::FAILURE: {
-        current_child_idx_++;
-        // Return the execution flow if the child is async,
-        // to make this interruptable.
-        // If this is an async node, check for interruptions after failure
-        if(asynch_ && requiresWakeUp() && prev_status == NodeStatus::IDLE &&
-           current_child_idx_ < children_count)
-        {
-          emitWakeUpSignal();
-          return NodeStatus::RUNNING;
-        }
-      }
-      break;  // Break here because the fail case may not return
-      case NodeStatus::SKIPPED: {
-        // It was requested to skip this node
-        current_child_idx_++;
-        skipped_count_++;
-      }
-      break;
-      case NodeStatus::IDLE: {
-        throw LogicError("[", name(), "]: A children should not return IDLE");
-      }
-    }  // end switch
-  }    // end while loop
+	// Sort nodes by utility in descending order
+	std::sort(util_node_pairs.begin(), util_node_pairs.end());
+	std::reverse(util_node_pairs.begin(), util_node_pairs.end());
 
-  // The entire while loop completed. This means that all the children returned FAILURE.
-  if(current_child_idx_ == children_count)
-  {
-    resetChildren();
-    current_child_idx_ = 0;
-  }
+	// These are made local variables because SS doesn't directly care about previous ticks
+	// Utilities are continuously recalculated so previously tried children can be revisited
+	size_t current_child_idx = 0;
+	size_t skipped_count = 0;
+	while(current_child_idx < children_count) {
+		TreeNode* current_child_node = util_node_pairs[current_child_idx].second;
 
-  // Skip if ALL the nodes have been skipped
-  return (skipped_count_ == children_count) ? NodeStatus::SKIPPED : NodeStatus::FAILURE;
+		auto prev_status = current_child_node->status();
+		const NodeStatus child_status = current_child_node->executeTick();
+
+		switch(child_status)
+		{
+			case NodeStatus::RUNNING: {
+				// If child is running, return running
+				return child_status;
+			}
+			case NodeStatus::SUCCESS: {
+				// If success, halt and reset all children then return success
+				resetChildren();
+				return child_status;
+			}
+			case NodeStatus::FAILURE: {
+				current_child_idx++;
+				// Return the execution flow if the child is async,
+				// to make this interruptable.
+				// If this is an async node, check for interruptions after failure
+				if(asynch_ && requiresWakeUp() && prev_status == NodeStatus::IDLE &&
+					current_child_idx < children_count)
+				{
+					emitWakeUpSignal();
+					return NodeStatus::RUNNING;
+				}
+			}
+			break;  // Break here because the fail case may not return
+			case NodeStatus::SKIPPED: {
+				// It was requested to skip this node
+				current_child_idx++;
+				skipped_count++;
+			}
+			break;
+			case NodeStatus::IDLE: {
+				throw LogicError("[", name(), "]: Children should not return IDLE");
+			}
+		}  // end switch
+	}    // end while loop
+
+	// The entire while loop completed. This means that all the children returned FAILURE.
+	if(current_child_idx == children_count) {
+		resetChildren();
+	}
+
+	// Skip if ALL the nodes have been skipped
+	return (skipped_count == children_count) ? NodeStatus::SKIPPED : NodeStatus::FAILURE;
 }
 
-void SmartSelector::halt()
-{
-  current_child_idx_ = 0;
-  ControlNode::halt();
+void SmartSelector::halt() {
+	ControlNode::halt();
 }
 
 }  // namespace BT

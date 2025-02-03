@@ -35,12 +35,15 @@ class SmartSelector : public ControlNode {
 		virtual void halt() override;
 
 		static PortsList providedPorts() {
-		return { InputPort<std::vector<float>>("input_data") };
+			return {
+				InputPort<std::vector<float>>("input_data"),
+				InputPort<float>("utility_threshold")
+			};
 		}
 
 	private:
-		size_t current_child_idx_;
-		size_t skipped_count_ = 0;
+		// size_t current_child_idx_;
+		// size_t skipped_count_ = 0;
 		bool asynch_ = false;
 
 		const DecisionModule* decision_module;
