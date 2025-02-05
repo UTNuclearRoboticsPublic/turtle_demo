@@ -36,8 +36,9 @@ class SmartSelector : public ControlNode {
 
 		static PortsList providedPorts() {
 			return {
-				InputPort<std::vector<float>>("input_data"),
-				InputPort<float>("utility_threshold")
+				InputPort<std::vector<float>>("input_data", "Data from input node"),
+				InputPort<float>("utility_threshold", "Minimum utility for a child to be selected"),
+				OutputPort<std::vector<float>>("utilities", "Computed utility scores for each child")
 			};
 		}
 
