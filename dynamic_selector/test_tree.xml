@@ -1,0 +1,12 @@
+ <root BTCPP_format="4" >
+     <BehaviorTree ID="MainTree">
+        <ReactiveSequence>
+            <SmartInputNode/>
+            <DynamicSelector>
+                <AlwaysSuccess  name="option_1"/>
+                <SleepNode msec="1000" name="option_2"/>
+            </DynamicSelector>
+            <LearningNode/>
+        </ReactiveSequence>
+     </BehaviorTree>
+ </root>
