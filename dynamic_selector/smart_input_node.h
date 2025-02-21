@@ -10,8 +10,8 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef ACTION_LEARNING_NODE_H
-#define ACTION_LEARNING_NODE_H
+#ifndef ACTION_SMARTINPUT_NODE_H
+#define ACTION_SMARTINPUT_NODE_H
 
 #include "behaviortree_cpp/action_node.h"
 
@@ -19,40 +19,41 @@ namespace BT
 {
 /**
  * TODO update this
- * @brief The Learning is action used to store a string
+ * @brief The SmartInput is action used to store a string
  * into an entry of the Blackboard specified in "output_key".
  *
  * Example usage:
  *
- *  <Learning value="42" output_key="the_answer" />
+ *  <SmartInput value="42" output_key="the_answer" />
  *
  * Will store the string "42" in the entry with key "the_answer".
  *
  * Alternatively, you can use it to copy one port inside another port:
  *
- * <Learning value="{src_port}" output_key="dst_port" />
+ * <SmartInput value="{src_port}" output_key="dst_port" />
  *
  * This will copy the type and content of {src_port} into {dst_port}
  */
-class LearningNode : public SyncActionNode
+class SmartInputNode : public SyncActionNode
 {
 public:
-  LearningNode(const std::string& name, const NodeConfig& config)
+  SmartInputNode(const std::string& name, const NodeConfig& config)
     : SyncActionNode(name, config)
   {
-    setRegistrationID("Learning");
+    setRegistrationID("SmartInput");
   }
 
   static PortsList providedPorts()
   {
-    return {
-            InputPort("utilities", "Utility score output from smart selector"),
-            OutputPort("smart_data", "Data to be sent to smart selector") };
+    return { // Add more input ports if necessary
+            InputPort("utilities", "Utility score output from dynamic selector"),
+            OutputPort("smart_data", "Data to be sent to dynamic selector") };
   }
 
 private:
   virtual BT::NodeStatus tick() override
   {
+    // TODO move this to cpp
     std::string output_key;
     if(!getInput("output_key", output_key))
     {

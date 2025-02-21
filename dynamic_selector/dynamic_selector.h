@@ -19,18 +19,18 @@
 namespace BT {
 	
 /**
- * @brief The SmartSelector is a control node with the following characteristics:
+ * @brief The DynamicSelector is a control node with the following characteristics:
  * Receives data through an input port every tick
  * Uses input data to compute utility score for each child
  * Tick child with highest utility score
  * Succeeds if any child succeeds
  * Fails if all child utility scores are below a threshold
  */
-class SmartSelector : public ControlNode {
+class DynamicSelector : public ControlNode {
 	public:
-		SmartSelector(const std::string& name, bool make_asynch = false);
+		DynamicSelector(const std::string& name, const NodeConfig& config, bool make_asynch = false);
 
-		virtual ~SmartSelector() override = default;
+		virtual ~DynamicSelector() override = default;
 
 		virtual void halt() override;
 
@@ -41,6 +41,8 @@ class SmartSelector : public ControlNode {
 				OutputPort<std::vector<float>>("utilities", "Computed utility scores for each child")
 			};
 		}
+
+		void setDecisionModule(const DecisionModule& new_decision_module);
 
 	private:
 		// size_t current_child_idx_;

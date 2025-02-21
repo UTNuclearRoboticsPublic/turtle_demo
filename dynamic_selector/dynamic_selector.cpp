@@ -11,24 +11,28 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "smart_selector.h"
+#include "dynamic_selector.h"
+#include <iostream>
 
 namespace BT {
 
-SmartSelector::SmartSelector(const std::string& name, bool make_asynch)
+DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& config, bool make_asynch)
 : ControlNode::ControlNode(name, {}), asynch_(make_asynch)
 {
 	// An async control node returns "running" after finishing a synchronous child
 	// This allows it to be interrupted even in between child ticks
 	// A non async control node with only synchronous children cannot be interrupted
 	if(asynch_)
-		setRegistrationID("AsyncSmartSelector");
+		setRegistrationID("AsyncDynamicSelector");
 	else
-		setRegistrationID("SmartSelector");
+		setRegistrationID("DynamicSelector");
+	std::cout << "Constructor finished\n";
 }
 
 // This method gets called whenever we tick this node
-NodeStatus SmartSelector::tick() {
+NodeStatus DynamicSelector::tick() {
+	std::cout << "Ticking now...\n";
+
 	// Read input ports
 	std::vector<float> input_data;
 	getInput("input_data", input_data);
@@ -46,10 +50,18 @@ NodeStatus SmartSelector::tick() {
 
 	setStatus(NodeStatus::RUNNING);
 
+	// Make sure there's a decision module
+	if (decision_module != nullptr) {
+		std::cout << "No linked decision module\n";
+		return NodeStatus::FAILURE;
+	}
+
 	// Get utility scores
+	std::cout << "Getting utilities...\n";
 	const std::vector<float> utilities = decision_module->getUtilities(input_data);
 
 	// Create pair vector of utilities and nodes
+	std::cout << "Making pairs...\n";
 	std::vector<std::pair<float, TreeNode*>> util_node_pairs;
 	for (size_t i = 0; i < utilities.size(); i++) {
 		std::pair<float, TreeNode*> new_pair;
@@ -117,8 +129,12 @@ NodeStatus SmartSelector::tick() {
 	return (skipped_count == children_count) ? NodeStatus::SKIPPED : NodeStatus::FAILURE;
 }
 
-void SmartSelector::halt() {
+void DynamicSelector::halt() {
 	ControlNode::halt();
+}
+
+void DynamicSelector::setDecisionModule(const DecisionModule& new_decision_module) {
+	decision_module = &new_decision_module;
 }
 
 }  // namespace BT
