@@ -28,7 +28,9 @@ namespace BT {
  */
 class DynamicSelector : public ControlNode {
 	public:
-		DynamicSelector(const std::string& name, const NodeConfig& config, bool make_asynch = false);
+		// For some reason, BTCPP doesn't like & for extra args
+		DynamicSelector(const std::string& name, const NodeConfig& config,
+			DecisionModule decision_module, bool make_asynch = false);
 
 		virtual ~DynamicSelector() override = default;
 
@@ -42,14 +44,12 @@ class DynamicSelector : public ControlNode {
 			};
 		}
 
-		void setDecisionModule(const DecisionModule& new_decision_module);
-
 	private:
 		// size_t current_child_idx_;
 		// size_t skipped_count_ = 0;
 		bool asynch_ = false;
 
-		const DecisionModule* decision_module;
+		const DecisionModule* decision_module_;
 
 		virtual BT::NodeStatus tick() override;
 };

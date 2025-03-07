@@ -16,8 +16,9 @@
 
 namespace BT {
 
-DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& config, bool make_asynch)
-: ControlNode::ControlNode(name, {}), asynch_(make_asynch)
+DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& config,
+	DecisionModule decision_module, bool make_asynch)
+: ControlNode::ControlNode(name, config), decision_module_(&decision_module), asynch_(make_asynch)
 {
 	// An async control node returns "running" after finishing a synchronous child
 	// This allows it to be interrupted even in between child ticks
@@ -26,6 +27,7 @@ DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& conf
 		setRegistrationID("AsyncDynamicSelector");
 	else
 		setRegistrationID("DynamicSelector");
+
 	std::cout << "Constructor finished\n";
 }
 
@@ -51,14 +53,14 @@ NodeStatus DynamicSelector::tick() {
 	setStatus(NodeStatus::RUNNING);
 
 	// Make sure there's a decision module
-	if (decision_module != nullptr) {
+	if (decision_module_ == nullptr) {
 		std::cout << "No linked decision module\n";
 		return NodeStatus::FAILURE;
 	}
 
 	// Get utility scores
 	std::cout << "Getting utilities...\n";
-	const std::vector<float> utilities = decision_module->getUtilities(input_data);
+	const std::vector<float> utilities = decision_module_->getUtilities(input_data);
 
 	// Create pair vector of utilities and nodes
 	std::cout << "Making pairs...\n";
@@ -131,10 +133,6 @@ NodeStatus DynamicSelector::tick() {
 
 void DynamicSelector::halt() {
 	ControlNode::halt();
-}
-
-void DynamicSelector::setDecisionModule(const DecisionModule& new_decision_module) {
-	decision_module = &new_decision_module;
 }
 
 }  // namespace BT

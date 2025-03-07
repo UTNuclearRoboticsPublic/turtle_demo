@@ -4,7 +4,7 @@ project(dynamic_selector VERSION 0.1.0)
 
 include_directories("/home/sheenan/thesis/dynamic_selector/include")
 
-add_executable(Test src/ds_test.cpp src/dynamic_selector.cpp src/decision_module.cpp)
+add_executable(Test ds_test.cpp src/dynamic_selector.cpp src/decision_module.cpp)
 # add_executable(Sample sample.cpp)
 
 set_target_properties(Test PROPERTIES
