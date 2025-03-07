@@ -4,19 +4,32 @@
 #include "learning_node.h"
 #include <iostream>
 
+#include <behaviortree_cpp/tree_node.h>
+
 class TestDecisionModule : public DecisionModule {
     public:
-        
+        TestDecisionModule() : DecisionModule(2, 1) {}
+        const std::vector<float> getUtilities(const std::vector<float> input_data) const {
+            float out = input_data[0] + input_data[1];
+            return std::vector<float>({out});
+        }
 };
+
+// class TestInputNode : public BT::SmartInputNode {
+//     public:
+// };
 
 int main() {
     // We use the BehaviorTreeFactory to register our custom nodes
     BT::BehaviorTreeFactory factory;
 
+    // Instantiate decision module
+    TestDecisionModule test_DM = TestDecisionModule();
+
     // The recommended way to create a Node is through inheritance.
-    factory.registerNodeType<BT::DynamicSelector>("DynamicSelector");
+    factory.registerNodeType<BT::DynamicSelector>("DynamicSelector", test_DM, false);
     factory.registerNodeType<BT::SmartInputNode>("SmartInputNode");
-    factory.registerNodeType<BT::LearningNode>("LearningNode");
+    //factory.registerNodeType<BT::LearningNode>("LearningNode");
 
     factory.registerNodeType<BT::SleepNode>("SleepNode");
 
@@ -34,7 +47,7 @@ int main() {
 
     // IMPORTANT: when the object "tree" goes out of scope, all the 
     // TreeNodes are destroyed
-    auto tree = factory.createTreeFromFile("./test_tree.xml");
+    auto tree = factory.createTreeFromFile("/home/sheenan/thesis/dynamic_selector/test_tree.xml");
 
     // To "execute" a Tree you need to "tick" it.
     // The tick is propagated to the children based on the logic of the tree.

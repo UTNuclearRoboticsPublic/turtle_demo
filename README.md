@@ -8,5 +8,5 @@ cmake --build dynamic_selector/build
 
 ## Running
 ```bash
-dynamic_selector/build/Test
+dynamic_selector/Test
 ```
