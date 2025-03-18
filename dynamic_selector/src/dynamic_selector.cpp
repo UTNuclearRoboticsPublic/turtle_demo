@@ -17,8 +17,8 @@
 namespace BT {
 
 DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& config,
-	DecisionModule decision_module, bool make_asynch)
-: ControlNode::ControlNode(name, config), decision_module_(&decision_module), asynch_(make_asynch)
+	DecisionModule* decision_module, bool make_asynch)
+: ControlNode::ControlNode(name, config), decision_module_(decision_module), asynch_(make_asynch)
 {
 	// An async control node returns "running" after finishing a synchronous child
 	// This allows it to be interrupted even in between child ticks
@@ -37,9 +37,15 @@ NodeStatus DynamicSelector::tick() {
 
 	// Read input ports
 	std::vector<float> input_data;
-	getInput("input_data", input_data);
+	auto input_data_expected = getInput("input_data", input_data);
 	float utility_threshold;
 	getInput("utility_threshold", utility_threshold);
+
+	// Verify ports have data
+	if (!input_data_expected.has_value()) {
+          throw std::runtime_error("Missing required port \"input_data\" for DynamicSelector, aborting");
+        return BT::NodeStatus::FAILURE;
+    }
 
 	// children_nodes_ is a vector of TreeNodes
 	const size_t children_count = children_nodes_.size();

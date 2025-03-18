@@ -30,7 +30,7 @@ class DynamicSelector : public ControlNode {
 	public:
 		// For some reason, BTCPP doesn't like & for extra args
 		DynamicSelector(const std::string& name, const NodeConfig& config,
-			DecisionModule decision_module, bool make_asynch = false);
+			DecisionModule* decision_module, bool make_asynch = false);
 
 		virtual ~DynamicSelector() override = default;
 
