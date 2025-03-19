@@ -7,8 +7,9 @@ SmartInputNode::SmartInputNode(const std::string& name, const NodeConfig& config
   : SyncActionNode(name, config) {};
 
 NodeStatus SmartInputNode::tick() {
-    //if !getInput()
-  return NodeStatus::SUCCESS;
+  std::vector<float> input_data = getInputData();
+  setOutput("input_data", input_data);
+  return BT::NodeStatus::SUCCESS;
 };
 
 }  // namespace BT

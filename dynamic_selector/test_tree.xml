@@ -1,10 +1,11 @@
  <root BTCPP_format="4" >
      <BehaviorTree ID="MainTree">
         <ReactiveSequence>
-            <SmartInputNode input_data="{data}" utilities="{utilities}"/>
+            <SmartInputNode input_data="{data}"/> <!--utilities="{utilities}"
+                TODO uncomment this when utility feedback is implemented-->
             <DynamicSelector input_data="{data}" utility_threshold="0.5" utilities="{utilities}">
-                <AlwaysSuccess  name="option_1"/>
-                <SleepNode msec="1000" name="option_2"/>
+                <Option1/>
+                <Option2/>
             </DynamicSelector>
             <!--LearningNode/-->
         </ReactiveSequence>

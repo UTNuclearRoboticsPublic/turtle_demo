@@ -27,13 +27,11 @@ DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& conf
 		setRegistrationID("AsyncDynamicSelector");
 	else
 		setRegistrationID("DynamicSelector");
-
-	std::cout << "Constructor finished\n";
 }
 
 // This method gets called whenever we tick this node
 NodeStatus DynamicSelector::tick() {
-	std::cout << "Ticking now...\n";
+	std::cout << "Ticking Dynamic Selector...\n";
 
 	// Read input ports
 	std::vector<float> input_data;
@@ -48,6 +46,7 @@ NodeStatus DynamicSelector::tick() {
     }
 
 	// children_nodes_ is a vector of TreeNodes
+	// TODO add a clause that checks if output size matches number of child nodes
 	const size_t children_count = children_nodes_.size();
 
 	// BTCPP says custom nodes should never return idle
@@ -65,7 +64,6 @@ NodeStatus DynamicSelector::tick() {
 	}
 
 	// Get utility scores
-	std::cout << "Getting utilities...\n";
 	const std::vector<float> utilities = decision_module_->getUtilities(input_data);
 
 	// Create pair vector of utilities and nodes

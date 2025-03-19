@@ -3,58 +3,56 @@
 #include "smart_input_node.h"
 #include "learning_node.h"
 #include <iostream>
+#include <random>
 
 #include <behaviortree_cpp/tree_node.h>
 
 class TestDecisionModule : public DecisionModule {
     public:
-        TestDecisionModule() : DecisionModule(2, 1) {}
-        const std::vector<float> getUtilities(const std::vector<float> input_data) const {
-            if (input_data.size() != input_size_) {
-                throw std::runtime_error("Invalid input size: expected " + std::to_string(input_size_) + ", got " + std::to_string(input_data.size()));
-            }
-            float out = input_data[0] + input_data[1];
-            return std::vector<float>({out});
+        TestDecisionModule() : DecisionModule(2, 2) {}
+        const std::vector<float> computeUtilities(const std::vector<float> input_data) const override {
+            std::vector<float> utils = {input_data[0] + 1, input_data[1] + 1};
+            return utils;
         }
 };
 
 class TestInputNode : public BT::SmartInputNode {
     public:
         TestInputNode(const std::string& name, const BT::NodeConfig& config) : SmartInputNode(name, config) {}
-        BT::NodeStatus tick() {
-            std::vector<float> input_data = {3, 5};
-            setOutput("input_data", input_data);
-            return BT::NodeStatus::SUCCESS;
+	private:
+        std::vector<float> getInputData() override {
+            std::vector<float> input_data = {float(std::rand()) / RAND_MAX, float(std::rand()) / RAND_MAX};
+			std::cout << "Input values: " << input_data[0] << ' ' << input_data[1] << std::endl;
+            return input_data;
         }
 };
 
+BT::NodeStatus print(std::string str) {
+    std::cout << str << std::endl;
+    return BT::NodeStatus::SUCCESS;
+};
+
 int main() {
+	// Set random seed with current time
+	std::srand(std::time({}));
+
     // We use the BehaviorTreeFactory to register our custom nodes
     BT::BehaviorTreeFactory factory;
 
     // Instantiate decision module
     TestDecisionModule* test_DM = new TestDecisionModule();
 
-    // Instantiate nodes for debug purposes
-    // BT::NodeConfig test_NodeConfig = BT::NodeConfig();
-    // BT::DynamicSelector test_DS = BT::DynamicSelector("test_DS", test_NodeConfig, test_DM, false);
-
     // The recommended way to create a Node is through inheritance.
-    factory.registerNodeType<BT::SleepNode>("SleepNode");
     factory.registerNodeType<BT::DynamicSelector>("DynamicSelector", test_DM, false);
     factory.registerNodeType<TestInputNode>("SmartInputNode");
-    //factory.registerNodeType<BT::LearningNode>("LearningNode");
-
-    
 
     // Registering a SimpleActionNode using a function pointer.
     // You can use C++11 lambdas or std::bind 
     //   factory.registerSimpleCondition("CheckBattery", [&](TreeNode&) { return CheckBattery(); });
 
     //You can also create SimpleActionNodes using methods of a class
-    //   GripperInterface gripper;
-    //   factory.registerSimpleAction("OpenGripper", [&](TreeNode&){ return gripper.open(); } );
-    //   factory.registerSimpleAction("CloseGripper", [&](TreeNode&){ return gripper.close(); } );
+    factory.registerSimpleAction("Option1", [&](BT::TreeNode&){ return print("Option 1"); });
+    factory.registerSimpleAction("Option2", [&](BT::TreeNode&){ return print("Option 2"); });
 
     // Trees are created at deployment-time (i.e. at run-time, but only 
     // once at the beginning). 

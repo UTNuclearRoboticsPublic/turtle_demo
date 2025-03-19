@@ -18,8 +18,10 @@
 namespace BT
 {
 /**
- * TODO update this
- * @brief The SmartInput collects data and feeds it to the dynamic selector
+ * @brief The SmartInputNode collects data and packages it for the dynamic selector.
+ * 
+ * This class is abstract. To use it, create a derived class that overrides the pure
+ * virtual method getInputData() with a function that returns a vector of data values.
  */
 class SmartInputNode : public SyncActionNode
 {
@@ -29,13 +31,14 @@ public:
   static PortsList providedPorts()
   {
     return {
-            InputPort<std::vector<float>>("utilities", "Utility score output from dynamic selector"),
-            OutputPort<std::vector<float>>("input_data", "Data to be sent to dynamic selector")
+      //InputPort<std::vector<float>>("utilities", "Utility score output from dynamic selector"),
+      OutputPort<std::vector<float>>("input_data", "Data to send to dynamic selector")
     };
   }
 
 private:
-  virtual BT::NodeStatus tick() override;
+  BT::NodeStatus tick() final;
+  virtual std::vector<float> getInputData() = 0;
 };
 }  // namespace BT
 
