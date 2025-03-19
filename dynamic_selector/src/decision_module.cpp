@@ -11,8 +11,8 @@ const std::vector<float> DecisionModule::getUtilities(const std::vector<float> i
         std::cout << "Running Decision Module...\n";
 
         // Validate size of input data
-        if (input_data.size() != input_size_) {
-            throw std::runtime_error("Invalid input size: expected " + std::to_string(input_size_) +
+        if (input_data.size() != input_size_ + output_size_) {
+            throw std::runtime_error("Invalid input size: expected " + std::to_string(input_size_ + output_size_) +
             ", got " + std::to_string(input_data.size()));
         }
 

@@ -27,6 +27,8 @@ DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& conf
 		setRegistrationID("AsyncDynamicSelector");
 	else
 		setRegistrationID("DynamicSelector");
+
+	prev_utils_ = std::vector<float>();
 }
 
 // This method gets called whenever we tick this node
@@ -49,11 +51,13 @@ NodeStatus DynamicSelector::tick() {
 	// TODO add a clause that checks if output size matches number of child nodes
 	const size_t children_count = children_nodes_.size();
 
-	// BTCPP says custom nodes should never return idle
-	// Status is only idle when ticking for the first time
-	// if(status() == NodeStatus::IDLE) {
-	// 	skipped_count_ = 0;
-	// }
+	// Concatenate previous utilities to input data if they exist
+	if (prev_utils_.size() > 0) {
+		input_data.insert(input_data.end(), prev_utils_.begin(), prev_utils_.end());
+	} else {
+		// Use 0 for previous utilities if there are none
+		for (size_t i = 0; i < children_count; i++) input_data.push_back(0);
+	}
 
 	setStatus(NodeStatus::RUNNING);
 
@@ -65,6 +69,7 @@ NodeStatus DynamicSelector::tick() {
 
 	// Get utility scores
 	const std::vector<float> utilities = decision_module_->getUtilities(input_data);
+	prev_utils_ = utilities;
 
 	// Create pair vector of utilities and nodes
 	std::cout << "Making pairs...\n";

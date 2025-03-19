@@ -31,7 +31,6 @@ public:
   static PortsList providedPorts()
   {
     return {
-      //InputPort<std::vector<float>>("utilities", "Utility score output from dynamic selector"),
       OutputPort<std::vector<float>>("input_data", "Data to send to dynamic selector")
     };
   }
