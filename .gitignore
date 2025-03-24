@@ -2,3 +2,6 @@
 /**/build/
 /cmake*/
 /dynamic_selector/Test
+/turtle_ws/build
+/turtle_ws/install
+/turtle_ws/log
