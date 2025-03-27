@@ -1,0 +1,9 @@
+<root BTCPP_format="4" >
+    <BehaviorTree ID="MainTree">
+        <KeepRunningUntilFailure>
+            <Inverter>
+                <TargetWithinRange/>
+            </Inverter>
+        </KeepRunningUntilFailure>
+    </BehaviorTree>
+ </root>

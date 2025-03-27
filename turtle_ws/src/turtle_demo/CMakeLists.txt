@@ -11,26 +11,29 @@ find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(turtlesim REQUIRED)
+find_package(behaviortree_ros2 REQUIRED)
+find_package(btcpp_ros2_interfaces REQUIRED)
+find_package(turtle_behaviors REQUIRED)
 
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+set(THIS_PACKAGE_DEPS
+    std_msgs
+    geometry_msgs
+    tf2
+    tf2_ros
+    turtlesim
+    behaviortree_ros2
+    btcpp_ros2_interfaces
+    turtle_behaviors
+)
 
 add_executable(turtle_broadcaster src/turtle_broadcaster.cpp)
-ament_target_dependencies(turtle_broadcaster
-    geometry_msgs
-    tf2
-    tf2_ros
-    turtlesim
-)
+ament_target_dependencies(turtle_broadcaster ${THIS_PACKAGE_DEPS})
 
 add_executable(turtle_listener src/turtle_listener.cpp)
-ament_target_dependencies(turtle_listener
-    geometry_msgs
-    tf2
-    tf2_ros
-    turtlesim
-)
+ament_target_dependencies(turtle_listener ${THIS_PACKAGE_DEPS})
+
+add_executable(turtle_test src/turtle_test.cpp)
+ament_target_dependencies(turtle_test ${THIS_PACKAGE_DEPS})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -53,6 +56,7 @@ install(DIRECTORY
 install(TARGETS
     turtle_broadcaster
     turtle_listener
+    turtle_test
     DESTINATION lib/${PROJECT_NAME}
 )
 

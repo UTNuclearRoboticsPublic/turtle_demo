@@ -4,7 +4,7 @@
 #include <string>
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
-#include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "tf2/exceptions.h"
 #include "tf2_ros/transform_listener.h"
@@ -16,8 +16,7 @@ using namespace std::chrono_literals;
 class FrameListener : public rclcpp::Node
 {
 public:
-  FrameListener()
-  : Node("turtle_tf2_frame_listener"),
+  FrameListener() : Node("turtle_tf2_frame_listener"),
     turtle_spawning_service_ready_(false),
     turtle_spawned_(false)
   {
@@ -33,9 +32,9 @@ public:
     spawner_ =
       this->create_client<turtlesim::srv::Spawn>("spawn");
 
-    // Create turtle2 velocity publisher
+    // Create turtle2 transform publisher
     publisher_ =
-      this->create_publisher<geometry_msgs::msg::Twist>("turtle2/cmd_vel", 1);
+      this->create_publisher<geometry_msgs::msg::PoseStamped>("turtle2/transform", 1);
 
     // Call on_timer function every second
     timer_ = this->create_wall_timer(
@@ -67,17 +66,24 @@ private:
           return;
         }
 
-        geometry_msgs::msg::Twist msg;
+        geometry_msgs::msg::PoseStamped msg;
 
-        static const double scaleRotationRate = 1.0;
-        msg.angular.z = scaleRotationRate * atan2(
-          t.transform.translation.y,
-          t.transform.translation.x);
+        msg.header = t.header;
 
-        static const double scaleForwardSpeed = 0.5;
-        msg.linear.x = scaleForwardSpeed * sqrt(
-          pow(t.transform.translation.x, 2) +
-          pow(t.transform.translation.y, 2));
+        msg.pose.position.x = t.transform.translation.x;
+        msg.pose.position.y = t.transform.translation.y;
+        msg.pose.position.z = t.transform.translation.z;
+        msg.pose.orientation = t.transform.rotation;
+
+        // static const double scaleRotationRate = 1.0;
+        // msg.angular.z = scaleRotationRate * atan2(
+        //   t.transform.translation.y,
+        //   t.transform.translation.x);
+
+        // static const double scaleForwardSpeed = 0.5;
+        // msg.linear.x = scaleForwardSpeed * sqrt(
+        //   pow(t.transform.translation.x, 2) +
+        //   pow(t.transform.translation.y, 2));
 
         publisher_->publish(msg);
       } else {
@@ -120,7 +126,7 @@ private:
   bool turtle_spawned_;
   rclcpp::Client<turtlesim::srv::Spawn>::SharedPtr spawner_{nullptr};
   rclcpp::TimerBase::SharedPtr timer_{nullptr};
-  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_{nullptr};
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr publisher_{nullptr};
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
   std::string target_frame_;
