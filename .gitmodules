@@ -1,5 +1,5 @@
-[submodule "BehaviorTree.CPP"]
-	path = btcpp/BehaviorTree.CPP
+[submodule "turtle_ws/src/BehaviorTree.CPP"]
+	path = turtle_ws/src/BehaviorTree.CPP
 	url = git@github.com:BehaviorTree/BehaviorTree.CPP.git
 [submodule "turtle_ws/src/behaviortree_ros2"]
 	path = turtle_ws/src/behaviortree_ros2
