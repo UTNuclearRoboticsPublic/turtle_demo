@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
     params.default_port_value = "turtle2/transform";
     factory.registerNodeType<TargetWithinRange>("TargetWithinRange", params);
 
-    auto tree = factory.createTreeFromFile("/home/sheenan/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_test_tree.xml");
+    auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_test_tree.xml");
 
     tree.tickWhileRunning();
   

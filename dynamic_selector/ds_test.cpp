@@ -59,7 +59,7 @@ int main() {
 
     // IMPORTANT: when the object "tree" goes out of scope, all the 
     // TreeNodes are destroyed
-    auto tree = factory.createTreeFromFile("/home/sheenan/thesis/dynamic_selector/test_tree.xml");
+    auto tree = factory.createTreeFromFile("/home/sheneman/thesis/dynamic_selector/test_tree.xml");
 
     // To "execute" a Tree you need to "tick" it.
     // The tick is propagated to the children based on the logic of the tree.
