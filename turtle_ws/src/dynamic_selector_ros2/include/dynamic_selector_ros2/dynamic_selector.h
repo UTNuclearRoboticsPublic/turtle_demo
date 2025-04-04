@@ -14,7 +14,10 @@
 #pragma once
 
 #include "behaviortree_cpp/control_node.h"
-#include "decision_module.h"
+#include "dynamic_selector_ros2/decision_module.h"
+
+#ifndef DYNAMIC_SELECTOR_H
+#define DYNAMIC_SELECTOR_H
 
 namespace BT {
 	
@@ -55,3 +58,5 @@ class DynamicSelector : public ControlNode {
 };
 
 }  // namespace BT
+
+#endif

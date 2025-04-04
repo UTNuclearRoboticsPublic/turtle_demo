@@ -8,6 +8,8 @@
   <license>TODO: License declaration</license>
 
   <depend>behaviortree_cpp</depend>
+  <depend>std_msgs</depend>
+  <depend>nrg_utility_behaviors</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

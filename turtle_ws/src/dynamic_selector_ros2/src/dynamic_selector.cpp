@@ -11,7 +11,7 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "dynamic_selector.h"
+#include <dynamic_selector_ros2/dynamic_selector.h>
 #include <iostream>
 
 namespace BT {

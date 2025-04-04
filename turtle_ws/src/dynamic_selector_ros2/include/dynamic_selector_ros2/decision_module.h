@@ -1,6 +1,8 @@
 #include <vector>
 #include <stdexcept>
 
+#ifndef DECISION_MODULE_H
+#define DECISION_MODULE_H
 
 using std::size_t;
 
@@ -14,6 +16,7 @@ using std::size_t;
 class DecisionModule {
     public:
         DecisionModule(size_t input_size, size_t output_size);
+        virtual ~DecisionModule() = default;
         const std::vector<float> getUtilities(const std::vector<float> input_data) const;
 
     protected:
@@ -23,3 +26,5 @@ class DecisionModule {
     private:
         virtual const std::vector<float> computeUtilities(const std::vector<float> input_data) const = 0;
 };
+
+#endif

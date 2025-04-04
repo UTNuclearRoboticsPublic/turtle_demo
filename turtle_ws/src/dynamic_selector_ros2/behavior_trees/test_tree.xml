@@ -1,0 +1,13 @@
+ <root BTCPP_format="4" >
+     <BehaviorTree ID="MainTree">
+        <ReactiveSequence>
+            <GetMessageFromTopic topic="input_1" type="std_msgs::msg::Float32" std_msgs::msg::Float32="{data1}"/>
+            <GetMessageFromTopic topic="input_2" type="std_msgs::msg::Bool" std_msgs::msg::Bool="{data2}"/>
+            <DataInputNode input_data="{data}"/>
+            <!--DynamicSelector input_data="{data}" utility_threshold="0.5" utilities="{utilities}"-->
+            <Option1/>
+            <Option2/>
+            <!--/DynamicSelector-->
+        </ReactiveSequence>
+     </BehaviorTree>
+ </root>

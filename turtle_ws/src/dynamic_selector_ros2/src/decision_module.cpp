@@ -1,6 +1,6 @@
 #include <vector>
 #include <iostream>
-#include "decision_module.h"
+#include <dynamic_selector_ros2/decision_module.h>
 
 DecisionModule::DecisionModule(size_t input_size, size_t output_size) {
     input_size_ = input_size;

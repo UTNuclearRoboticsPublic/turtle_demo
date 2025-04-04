@@ -23,10 +23,11 @@ namespace BT
  * This class is abstract. To use it, create a derived class that overrides the pure
  * virtual method getInputData() with a function that returns a vector of data values.
  */
-class SmartInputNode : public virtual SyncActionNode
+class SmartInputNode : public SyncActionNode
 {
 public:
   SmartInputNode(const std::string& name, const NodeConfig& config);
+  virtual ~SmartInputNode() = default;
 
   static PortsList providedPorts()
   {
