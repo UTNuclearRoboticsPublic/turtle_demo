@@ -8,7 +8,6 @@ DecisionModule::DecisionModule(size_t input_size, size_t output_size) {
 }
 
 const std::vector<float> DecisionModule::getUtilities(const std::vector<float> input_data) const {
-        std::cout << "Running Decision Module...\n";
 
         // Validate size of input data
         if (input_data.size() != input_size_ + output_size_) {

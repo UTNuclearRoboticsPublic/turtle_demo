@@ -3,15 +3,25 @@
 namespace BT
 {
 
-SmartInputNode::SmartInputNode(const std::string& name, const NodeConfig& config)
+SmartInputNode::SmartInputNode(const std::string& name, const BT::NodeConfig& config)
   : SyncActionNode(name, config) {};
 
 NodeStatus SmartInputNode::tick() {
   std::vector<float> input_data = getInputData();
 
+  if (input_data.size() == 0) {
+    throw std::runtime_error("Missing input data");
+    return NodeStatus::FAILURE;
+  }
+
   // Write input data to blackboard
-  setOutput("input_data", input_data);
-  return BT::NodeStatus::SUCCESS;
+  // Print the error if something goes wrong
+  auto output_expect = setOutput("data", input_data);
+  if (!output_expect) {
+    throw std::runtime_error(output_expect.error());
+    return NodeStatus::FAILURE;
+  };
+  return NodeStatus::SUCCESS;
 };
 
 }  // namespace BT

@@ -33,7 +33,6 @@ DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& conf
 
 // This method gets called whenever we tick this node
 NodeStatus DynamicSelector::tick() {
-	std::cout << "Ticking Dynamic Selector...\n";
 
 	// Read input ports
 	std::vector<float> input_data;
@@ -43,7 +42,7 @@ NodeStatus DynamicSelector::tick() {
 
 	// Verify ports have data
 	if (!input_data_expected.has_value()) {
-          throw std::runtime_error("Missing required port \"input_data\" for DynamicSelector, aborting");
+		throw std::runtime_error("Missing required port \"input_data\" for DynamicSelector, aborting");
         return BT::NodeStatus::FAILURE;
     }
 
@@ -72,7 +71,6 @@ NodeStatus DynamicSelector::tick() {
 	prev_utils_ = utilities;
 
 	// Create pair vector of utilities and nodes
-	std::cout << "Making pairs...\n";
 	std::vector<std::pair<float, TreeNode*>> util_node_pairs;
 	for (size_t i = 0; i < utilities.size(); i++) {
 		std::pair<float, TreeNode*> new_pair;
@@ -84,6 +82,12 @@ NodeStatus DynamicSelector::tick() {
 	// Sort nodes by utility in descending order
 	std::sort(util_node_pairs.begin(), util_node_pairs.end());
 	std::reverse(util_node_pairs.begin(), util_node_pairs.end());
+
+	// If no utility is above threshold, return Failure
+	if (util_node_pairs[0].first < utility_threshold) {
+		std::cout << "Utilities are too low" << std::endl;
+		return NodeStatus::FAILURE;
+	}
 
 	// These are made local variables because SS doesn't directly care about previous ticks
 	// Utilities are continuously recalculated so previously tried children can be revisited

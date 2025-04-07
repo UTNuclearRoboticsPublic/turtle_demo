@@ -29,12 +29,16 @@ public:
   SmartInputNode(const std::string& name, const NodeConfig& config);
   virtual ~SmartInputNode() = default;
 
-  static PortsList providedPorts()
-  {
-    return {
-      OutputPort<std::vector<float>>("input_data", "Data to send to dynamic selector")
-    };
-  }
+  // static PortsList providedPorts()
+  // {
+  //   PortsList ports = T::inputPorts();
+  //   ports.insert(
+  //     OutputPort<std::vector<float>>("data", "Data to send to dynamic selector")
+  //   );
+  //   return ports;
+  // }
+
+  // virtual PortsList inputPorts() = 0;
 
 private:
   BT::NodeStatus tick() final;
