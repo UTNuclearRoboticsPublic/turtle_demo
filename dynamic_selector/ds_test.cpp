@@ -1,6 +1,6 @@
 #include <behaviortree_cpp/bt_factory.h>
 #include "dynamic_selector.h"
-#include "smart_input_node.h"
+#include "input_data_node.h"
 #include "learning_node.h"
 #include <iostream>
 #include <random>
@@ -16,9 +16,9 @@ class TestDecisionModule : public DecisionModule {
         }
 };
 
-class TestInputNode : public BT::SmartInputNode {
+class TestInputNode : public BT::InputDataNode {
     public:
-        TestInputNode(const std::string& name, const BT::NodeConfig& config) : SmartInputNode(name, config) {}
+        TestInputNode(const std::string& name, const BT::NodeConfig& config) : InputDataNode(name, config) {}
 	private:
         std::vector<float> getInputData() override {
             std::vector<float> input_data = {float(std::rand()) / RAND_MAX, float(std::rand()) / RAND_MAX};
@@ -44,7 +44,7 @@ int main() {
 
     // The recommended way to create a Node is through inheritance.
     factory.registerNodeType<BT::DynamicSelector>("DynamicSelector", test_DM, false);
-    factory.registerNodeType<TestInputNode>("SmartInputNode");
+    factory.registerNodeType<TestInputNode>("InputDataNode");
 
     // Registering a SimpleActionNode using a function pointer.
     // You can use C++11 lambdas or std::bind 

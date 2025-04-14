@@ -1,12 +1,12 @@
-#include <dynamic_selector_ros2/smart_input_node.h>
+#include <dynamic_selector_ros2/input_data_node.h>
 
 namespace BT
 {
 
-SmartInputNode::SmartInputNode(const std::string& name, const BT::NodeConfig& config)
+InputDataNode::InputDataNode(const std::string& name, const BT::NodeConfig& config)
   : SyncActionNode(name, config) {};
 
-NodeStatus SmartInputNode::tick() {
+NodeStatus InputDataNode::tick() {
   std::vector<float> input_data = getInputData();
 
   if (input_data.size() == 0) {

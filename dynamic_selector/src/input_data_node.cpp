@@ -1,12 +1,12 @@
-#include "smart_input_node.h"
+#include "input_data_node.h"
 
 namespace BT
 {
 
-SmartInputNode::SmartInputNode(const std::string& name, const NodeConfig& config)
+InputDataNode::InputDataNode(const std::string& name, const NodeConfig& config)
   : SyncActionNode(name, config) {};
 
-NodeStatus SmartInputNode::tick() {
+NodeStatus InputDataNode::tick() {
   std::vector<float> input_data = getInputData();
 
   // Write input data to blackboard

@@ -10,23 +10,23 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef ACTION_SMARTINPUT_NODE_H
-#define ACTION_SMARTINPUT_NODE_H
+#ifndef ACTION_INPUT_DATA_NODE_H
+#define ACTION_INPUT_DATA_NODE_H
 
 #include "behaviortree_cpp/action_node.h"
 
 namespace BT
 {
 /**
- * @brief The SmartInputNode collects data and packages it for the dynamic selector.
+ * @brief The InputDataNode collects data and packages it for the dynamic selector.
  * 
  * This class is abstract. To use it, create a derived class that overrides the pure
  * virtual method getInputData() with a function that returns a vector of data values.
  */
-class SmartInputNode : public SyncActionNode
+class InputDataNode : public SyncActionNode
 {
 public:
-  SmartInputNode(const std::string& name, const NodeConfig& config);
+  InputDataNode(const std::string& name, const NodeConfig& config);
 
   static PortsList providedPorts()
   {

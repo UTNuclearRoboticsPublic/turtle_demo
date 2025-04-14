@@ -16,7 +16,7 @@ ament_export_include_directories(include)
 include_directories(include)
 
 add_library(${PROJECT_NAME} SHARED
-src/smart_input_node.cpp
+src/input_data_node.cpp
 src/decision_module.cpp
 src/dynamic_selector.cpp
 )
@@ -30,7 +30,7 @@ install(
   DESTINATION lib/${PROJECT_NAME}
 )
 
-add_executable(ds_test src/ds_test.cpp src/smart_input_node.cpp src/decision_module.cpp src/dynamic_selector.cpp)
+add_executable(ds_test src/ds_test.cpp src/input_data_node.cpp src/decision_module.cpp src/dynamic_selector.cpp)
 ament_target_dependencies(ds_test
 behaviortree_cpp
 std_msgs
