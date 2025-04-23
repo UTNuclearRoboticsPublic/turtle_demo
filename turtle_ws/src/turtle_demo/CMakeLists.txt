@@ -7,22 +7,22 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(turtlesim REQUIRED)
-find_package(behaviortree_ros2 REQUIRED)
-find_package(btcpp_ros2_interfaces REQUIRED)
+find_package(behaviortree_cpp)
+find_package(nrg_utility_behaviors)
 find_package(turtle_behaviors REQUIRED)
 
 set(THIS_PACKAGE_DEPS
+    rclcpp
     std_msgs
     geometry_msgs
-    tf2
-    tf2_ros
-    turtlesim
-    behaviortree_ros2
-    btcpp_ros2_interfaces
+    turtlesim    
+    behaviortree_cpp
+    nrg_utility_behaviors
     turtle_behaviors
 )
 
@@ -32,8 +32,8 @@ ament_target_dependencies(turtle_broadcaster ${THIS_PACKAGE_DEPS})
 add_executable(turtle_listener src/turtle_listener.cpp)
 ament_target_dependencies(turtle_listener ${THIS_PACKAGE_DEPS})
 
-add_executable(turtle_test src/turtle_test.cpp)
-ament_target_dependencies(turtle_test ${THIS_PACKAGE_DEPS})
+add_executable(turtle_BT src/turtle_BT.cpp)
+ament_target_dependencies(turtle_BT ${THIS_PACKAGE_DEPS})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -53,10 +53,11 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}/
 )
 
+# Install executables
 install(TARGETS
     turtle_broadcaster
     turtle_listener
-    turtle_test
+    turtle_BT
     DESTINATION lib/${PROJECT_NAME}
 )
 

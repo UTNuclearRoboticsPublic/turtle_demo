@@ -4,7 +4,3 @@
 [submodule "turtle_ws/src/nrg_behaviors"]
 	path = turtle_ws/src/nrg_behaviors
 	url = git@github.com:UTNuclearRobotics/nrg_behaviors.git
-[submodule "turtle_ws/src/behaviortree_ros2"]
-	path = turtle_ws/src/behaviortree_ros2
-	url = git@github.com:BehaviorTree/BehaviorTree.ROS2.git
-	branch = humble

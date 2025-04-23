@@ -1,11 +1,13 @@
 #include <behaviortree_cpp/bt_factory.h>
 #include <std_msgs/msg/float32.hpp>
 #include <std_msgs/msg/bool.hpp>
+#include <nrg_utility_behaviors/get_message_from_topic.hpp>
+#include <behaviortree_cpp/loggers/groot2_publisher.h>
+
 #include "dynamic_selector_ros2/smart_input_node.h"
 #include "dynamic_selector_ros2/decision_module.h"
 #include "dynamic_selector_ros2/dynamic_selector.h"
-#include <nrg_utility_behaviors/get_message_from_topic.hpp>
-#include "behaviortree_cpp/loggers/groot2_publisher.h"
+
 
 
 using namespace BT;
@@ -64,7 +66,6 @@ BT::NodeStatus print(std::string str) {
 
 int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
-    auto nh = std::make_shared<rclcpp::Node>("turtle_test");
     BehaviorTreeFactory factory;
 
     // Instantiate decision module

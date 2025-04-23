@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="MainTree">
+    <KeepRunningUntilFailure>
+      <Fallback>
+        <Sequence>
+          <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{pose}"/>
+          <TargetWithinRange target_pose="{pose}"/>
+          <SleepNode msec="500"/>
+          <!--ChaseTarget target_pose="{pose}"/-->
+        </Sequence>
+        <SleepNode msec="500"/>
+      </Fallback>
+    </KeepRunningUntilFailure>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="ChaseTarget"
+            editable="true"/>
+    <Condition ID="TargetWithinRange"
+            editable="true"/>
+  </TreeNodesModel>
+
+</root>
