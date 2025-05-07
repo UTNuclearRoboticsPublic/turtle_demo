@@ -1,5 +1,5 @@
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "behaviortree_cpp/condition_node.h"
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <behaviortree_cpp/condition_node.h>
 #include <iostream>
 
 namespace BT{
@@ -9,9 +9,10 @@ public:
     TargetWithinRange(const std::string& name, const NodeConfig& conf)
         : ConditionNode(name, conf) {}
 
-    static BT::PortsList providedPorts() {
+    static PortsList providedPorts() {
       return {
-        InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("target_pose", "Pose of target relative to chaser")
+        InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("target_pose", "Pose of target relative to chaser"),
+        InputPort<double>("range", "Maximum distance for chaser to see target")
       };
     }
 

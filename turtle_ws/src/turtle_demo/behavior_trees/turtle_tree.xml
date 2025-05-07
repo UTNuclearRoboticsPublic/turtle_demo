@@ -5,21 +5,18 @@
       <Fallback>
         <Sequence>
           <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{pose}"/>
-          <TargetWithinRange target_pose="{pose}"/>
-          <SleepNode msec="500"/>
-          <!--ChaseTarget target_pose="{pose}"/-->
+          <TargetWithinRange target_pose="{pose}" range="2.0"/>
+          <ChaseTarget target_pose="{pose}" chase_velocity="{chase_velocity}"/>
+          <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
+        </Sequence>
+        <Sequence>
+          <ForceSuccessNode>
+            <ScanSearch target_pose="{pose}" rotation_speed="1.0" scan_velocity="{scan_velocity}"/>
+          </ForceSuccessNode>
+          <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{scan_velocity}"/>
         </Sequence>
         <SleepNode msec="500"/>
       </Fallback>
     </KeepRunningUntilFailure>
   </BehaviorTree>
-
-  <!-- Description of Node Models (used by Groot) -->
-  <TreeNodesModel>
-    <Action ID="ChaseTarget"
-            editable="true"/>
-    <Condition ID="TargetWithinRange"
-            editable="true"/>
-  </TreeNodesModel>
-
 </root>

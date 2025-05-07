@@ -13,6 +13,8 @@ find_package(geometry_msgs)
 # Declare the source files
 set(BEHAVIOR_SOURCES
   src/target_within_range.cpp
+  src/chase_target.cpp
+  src/scan_search.cpp
 )
 
 include_directories(include)
