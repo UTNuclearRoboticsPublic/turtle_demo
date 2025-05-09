@@ -1,8 +1,7 @@
 #include "turtle_behaviors/scan_search.hpp"
 
-namespace BT{
+namespace BT {
 NodeStatus ScanSearch::tick() {
-    std::cout << "Doing scan search\n";
 
     geometry_msgs::msg::PoseStamped::SharedPtr target_pose;
     if (!getInput("target_pose", target_pose)) {
@@ -17,9 +16,6 @@ NodeStatus ScanSearch::tick() {
     };
 
     geometry_msgs::msg::Twist scan_velocity;
-    // scan_velocity.angular.z = 0;
-    // scan_velocity.linear.x = 0;
-    // scan_velocity.linear.y = 0;
 
     // Get angle between chaser and target
     double target_angle = atan2(
@@ -27,19 +23,17 @@ NodeStatus ScanSearch::tick() {
         target_pose->pose.position.x
     );
 
-    std::cout << "Debug 0\n";
     std::cout << "Angle: " << target_angle << "\n";
-    std::cout << "Debug 1\n";
 
-    // Target spotted if angle less than 30 degrees
-    if (abs(target_angle) <= M_PI / 6) {
-        std::cout << "Target spotted\n";
+    // Target spotted if angle less than 15 degrees
+    if (fabs(target_angle) <= M_PI / 12) {
+        std::cout << "Scan Search: Target spotted\n";
         setOutput("scan_velocity", scan_velocity);
         return NodeStatus::SUCCESS;
     }
 
     else {
-        std::cout << "Target not spotted\n";
+        std::cout << "Scan Search: Target not spotted\n";
         scan_velocity.angular.z = rotation_speed;
         setOutput("scan_velocity", scan_velocity);
         return NodeStatus::FAILURE;

@@ -10,10 +10,10 @@ public:
         : ConditionNode(name, conf) {}
 
     static PortsList providedPorts() {
-      return {
-        InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("target_pose", "Pose of target relative to chaser"),
-        InputPort<double>("range", "Maximum distance for chaser to see target")
-      };
+        return {
+            InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("target_pose", "Pose of target relative to chaser"),
+            InputPort<double>("range", "Maximum distance for chaser to see target")
+        };
     }
 
     NodeStatus tick() override;

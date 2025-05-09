@@ -15,6 +15,7 @@ set(BEHAVIOR_SOURCES
   src/target_within_range.cpp
   src/chase_target.cpp
   src/scan_search.cpp
+  src/go_to_point.cpp
 )
 
 include_directories(include)
