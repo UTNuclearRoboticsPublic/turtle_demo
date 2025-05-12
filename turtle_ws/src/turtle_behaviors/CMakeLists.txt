@@ -7,21 +7,41 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(behaviortree_ros2 REQUIRED)
+find_package(behaviortree_cpp REQUIRED)
+find_package(geometry_msgs)
 
+# Declare the source files
+set(BEHAVIOR_SOURCES
+  src/target_within_range.cpp
+  src/chase_target.cpp
+  src/scan_search.cpp
+  src/go_to_point.cpp
+)
+
+include_directories(include)
+
+# Create turtle_behaviors library
+add_library(${PROJECT_NAME} SHARED ${BEHAVIOR_SOURCES})
+
+ament_target_dependencies(${PROJECT_NAME}
+behaviortree_cpp
+geometry_msgs
+)
+
+ament_export_targets(${PROJECT_NAME}Targets HAS_LIBRARY_TARGET)
+
+# Install include files
 install(DIRECTORY include/  DESTINATION include/)
 ament_export_include_directories(include)
 
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
-  set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
-  set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-endif()
+# Install library
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}Targets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
 
 ament_package()

@@ -6,7 +6,8 @@ def generate_launch_description():
         Node(
             package='turtlesim',
             executable='turtlesim_node',
-            output='screen'),
+            output='screen'
+        ),
         Node(
             package='turtle_demo',
             executable='turtle_broadcaster',
@@ -30,5 +31,11 @@ def generate_launch_description():
             parameters=[
                 {'target_frame' : 'turtle1'}
             ]
+        ),
+        Node(
+            package='turtle_demo',
+            executable='turtle_BT',
+            name='turtle_BT',
+            output='screen'
         )
     ])

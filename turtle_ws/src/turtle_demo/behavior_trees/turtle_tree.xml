@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="MainTree">
+    <KeepRunningUntilFailure>
+      <Fallback>
+        <Sequence name="Target Within Range">
+          <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{pose}"/>
+          <TargetWithinRange target_pose="{pose}" range="2.0"/>
+          <ChaseTarget target_pose="{pose}" chase_velocity="{chase_velocity}"/>
+          <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
+        </Sequence>
+        <Fallback name="Target Out of Range">
+          <Sequence name="Scan Search Successful">
+            <ScanSearch target_pose="{pose}" rotation_speed="1.0" scan_velocity="{scan_velocity}"/>
+            <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
+            <ReactiveSequence>
+              <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{pose}"/>
+              <Inverter>
+                <TargetWithinRange target_pose="{pose}" range="2.0"/>
+              </Inverter>
+              <GetCurrentPose reference_frame="world" target_frame="turtle2" pose="{chaser_pose}"/>
+              <ForceSuccessNode>
+                <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
+              </ForceSuccessNode>
+              <GoToPoint last_known_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{chase_velocity}"/>
+            </ReactiveSequence>
+            <StopTurtle zero_velocity="{zero_velocity}"/>
+            <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{zero_velocity}"/>
+          </Sequence>
+          <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{scan_velocity}"/>
+        </Fallback>
+      </Fallback>
+    </KeepRunningUntilFailure>
+  </BehaviorTree>
+</root>

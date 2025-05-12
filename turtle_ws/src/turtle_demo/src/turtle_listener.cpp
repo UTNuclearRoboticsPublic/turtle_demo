@@ -75,16 +75,6 @@ private:
         msg.pose.position.z = t.transform.translation.z;
         msg.pose.orientation = t.transform.rotation;
 
-        // static const double scaleRotationRate = 1.0;
-        // msg.angular.z = scaleRotationRate * atan2(
-        //   t.transform.translation.y,
-        //   t.transform.translation.x);
-
-        // static const double scaleForwardSpeed = 0.5;
-        // msg.linear.x = scaleForwardSpeed * sqrt(
-        //   pow(t.transform.translation.x, 2) +
-        //   pow(t.transform.translation.y, 2));
-
         publisher_->publish(msg);
       } else {
         RCLCPP_INFO(this->get_logger(), "Successfully spawned");
