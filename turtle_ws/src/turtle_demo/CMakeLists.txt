@@ -16,6 +16,7 @@ find_package(turtlesim REQUIRED)
 find_package(behaviortree_cpp)
 find_package(nrg_utility_behaviors)
 find_package(turtle_behaviors REQUIRED)
+find_package(dynamic_selector_ros2 REQUIRED)
 
 set(THIS_PACKAGE_DEPS
     rclcpp
@@ -25,6 +26,7 @@ set(THIS_PACKAGE_DEPS
     behaviortree_cpp
     nrg_utility_behaviors
     turtle_behaviors
+    dynamic_selector_ros2
 )
 
 add_executable(turtle_broadcaster src/turtle_broadcaster.cpp)

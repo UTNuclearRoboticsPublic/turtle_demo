@@ -33,6 +33,7 @@ DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& conf
 
 // This method gets called whenever we tick this node
 NodeStatus DynamicSelector::tick() {
+	std::cout << "Ticking Dynamic Selector" << std::endl;\
 
 	// Read input ports
 	std::vector<float> input_data;
@@ -62,13 +63,15 @@ NodeStatus DynamicSelector::tick() {
 
 	// Make sure there's a decision module
 	if (decision_module_ == nullptr) {
-		std::cout << "No linked decision module\n";
+		std::cout << "No linked decision module" << std::endl;
 		return NodeStatus::FAILURE;
 	}
 
 	// Get utility scores
+	std::cout << "Getting utilities..." << std::endl;
 	const std::vector<float> utilities = decision_module_->getUtilities(input_data);
 	prev_utils_ = utilities;
+	std::cout << "Got utilities." << std::endl;
 
 	// Create pair vector of utilities and nodes
 	std::vector<std::pair<float, TreeNode*>> util_node_pairs;
@@ -93,6 +96,7 @@ NodeStatus DynamicSelector::tick() {
 	// Utilities are continuously recalculated so previously tried children can be revisited
 	size_t current_child_idx = 0;
 	size_t skipped_count = 0;
+	std::cout << "Ticking child" << std::endl;
 	while(current_child_idx < children_count) {
 		TreeNode* current_child_node = util_node_pairs[current_child_idx].second;
 

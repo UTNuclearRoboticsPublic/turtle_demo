@@ -27,9 +27,16 @@ ament_target_dependencies(${PROJECT_NAME}
 behaviortree_cpp
 )
 
+ament_export_targets(${PROJECT_NAME}Targets HAS_LIBRARY_TARGET)
+
+# Install library
 install(
   TARGETS ${PROJECT_NAME}
-  DESTINATION lib/${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}Targets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
 )
 
 add_executable(ds_test src/ds_test.cpp src/smart_input_node.cpp src/decision_module.cpp src/dynamic_selector.cpp)
@@ -39,8 +46,7 @@ std_msgs
 nrg_utility_behaviors
 )
 
-target_link_libraries(ds_test behaviortree_cpp)
-
+# Install executable
 install(
   TARGETS ds_test
   DESTINATION lib/${PROJECT_NAME})

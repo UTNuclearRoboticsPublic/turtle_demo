@@ -2,7 +2,7 @@
 
 namespace BT {
 NodeStatus GoToPoint::onStart() {
-    std::cout << "Go to Point: Beginning\n";
+    std::cout << "Go to Point: Beginning" << std::endl;
     // Verify inputs
     geometry_msgs::msg::PoseStamped::SharedPtr last_known_pose, chaser_pose;
     if (!getInput("last_known_pose", last_known_pose)) {
@@ -37,11 +37,11 @@ NodeStatus GoToPoint::onRunning() {
     // Account for singularities
     double chaser_angle;
     if (fabs(q_z * q_w - 0.5) <= 0.001) {
-        std::cout << "Positive Singularity: " <<  fabs(q_z * q_w) << "\n";
+        std::cout << "Positive Singularity: " <<  fabs(q_z * q_w) << "" << std::endl;
         chaser_angle = 0;
     }
     else if (fabs(q_z * q_w + 0.5) <= 0.001) {
-        std::cout << "Negative Singularity: " <<  fabs(q_z * q_w) << "\n";
+        std::cout << "Negative Singularity: " <<  fabs(q_z * q_w) << "" << std::endl;
         chaser_angle = M_PI;
     }
     else {
@@ -54,11 +54,11 @@ NodeStatus GoToPoint::onRunning() {
     setOutput("chase_velocity", chase_velocity);
 
     if (sqrt(pow(x_diff, 2) + pow(y_diff, 2)) < 0.1) {
-        std::cout << "Go to Point: Arrived at target.\n";
+        std::cout << "Go to Point: Arrived at target." << std::endl;
         return NodeStatus::SUCCESS;
     }
     else {
-        std::cout << "Go to Point: Not at target yet...\n";
+        std::cout << "Go to Point: Not at target yet..." << std::endl;
         return NodeStatus::RUNNING;
     }
 }

@@ -23,17 +23,17 @@ NodeStatus ScanSearch::tick() {
         target_pose->pose.position.x
     );
 
-    std::cout << "Angle: " << target_angle << "\n";
+    std::cout << "Angle: " << target_angle << "" << std::endl;
 
     // Target spotted if angle less than 15 degrees
     if (fabs(target_angle) <= M_PI / 12) {
-        std::cout << "Scan Search: Target spotted\n";
+        std::cout << "Scan Search: Target spotted" << std::endl;
         setOutput("scan_velocity", scan_velocity);
         return NodeStatus::SUCCESS;
     }
 
     else {
-        std::cout << "Scan Search: Target not spotted\n";
+        std::cout << "Scan Search: Target not spotted" << std::endl;
         scan_velocity.angular.z = rotation_speed;
         setOutput("scan_velocity", scan_velocity);
         return NodeStatus::FAILURE;

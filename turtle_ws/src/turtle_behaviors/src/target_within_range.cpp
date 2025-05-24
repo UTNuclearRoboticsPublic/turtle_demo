@@ -17,7 +17,7 @@ NodeStatus TargetWithinRange::tick() {
         return NodeStatus::SUCCESS;
     }
     else {
-        std::cout << "dist = " << dist << std::endl;
+        std::cout << "TWR: dist = " << dist << std::endl;
         return NodeStatus::FAILURE;
     }
 }

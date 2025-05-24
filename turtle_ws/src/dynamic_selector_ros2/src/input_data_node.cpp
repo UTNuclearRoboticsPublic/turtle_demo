@@ -14,6 +14,8 @@ NodeStatus InputDataNode::tick() {
     return NodeStatus::FAILURE;
   }
 
+  std::cout << "Got input data" << std::endl;
+
   // Write input data to blackboard
   // Print the error if something goes wrong
   auto output_expect = setOutput("data", input_data);
