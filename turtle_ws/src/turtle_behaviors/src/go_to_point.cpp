@@ -23,32 +23,40 @@ NodeStatus GoToPoint::onRunning() {
     getInput("last_known_pose", last_known_pose);
     getInput("chaser_pose", chaser_pose);
 
-    geometry_msgs::msg::Twist chase_velocity;
     double x_diff = last_known_pose->pose.position.x - chaser_pose->pose.position.x;
     double y_diff = last_known_pose->pose.position.y - chaser_pose->pose.position.y;
 
+    // Create twist to send to chaser turtle
+    geometry_msgs::msg::Twist chase_velocity;
+    
+    // Compute target angle
     static const double scaleRotationRate = 1.0;
     double target_angle = atan2(
         y_diff, x_diff
     );
-    // Need to get current angle of chaser and take the difference
-    double q_z = chaser_pose->pose.orientation.z;
-    double q_w = chaser_pose->pose.orientation.w;
-    // Account for singularities
-    double chaser_angle;
-    if (fabs(q_z * q_w - 0.5) <= 0.001) {
-        std::cout << "Positive Singularity: " <<  fabs(q_z * q_w) << "" << std::endl;
-        chaser_angle = 0;
-    }
-    else if (fabs(q_z * q_w + 0.5) <= 0.001) {
-        std::cout << "Negative Singularity: " <<  fabs(q_z * q_w) << "" << std::endl;
-        chaser_angle = M_PI;
-    }
-    else {
-        chaser_angle = atan2(2 * q_w * q_z, 1 - 2 * q_z * q_z);
-    }
 
-    chase_velocity.angular.z = scaleRotationRate * (target_angle - chaser_angle);  
+    // Compute current angle (Axis angle formula)
+    double q_w = chaser_pose->pose.orientation.w;  // Ranges from 0 to 1
+    double q_z = chaser_pose->pose.orientation.z;  // Ranges from 0 to 1
+    double chaser_angle = 2 * acos(q_w) * q_z / abs(q_z);  // Ranges from 0 to 2*pi
+
+    // Get angle difference between chaser and target
+    double diff_angle  = target_angle - chaser_angle;
+    // If difference is >pi then direction is wrong
+    // Add or subtract 2pi to compensate
+    if (abs(diff_angle) > M_PI) {
+        if (target_angle > 0) {
+            std::cout << "Subtracting 2pi" << std::endl;
+            diff_angle = target_angle - chaser_angle - 2 * M_PI;
+        }
+        else {
+            std::cout << "Adding 2pi" << std::endl;
+            diff_angle = target_angle - chaser_angle + 2 * M_PI;
+        }
+    }
+    
+
+    chase_velocity.angular.z = scaleRotationRate * diff_angle;  
     chase_velocity.linear.x = 1.0;
 
     setOutput("chase_velocity", chase_velocity);
