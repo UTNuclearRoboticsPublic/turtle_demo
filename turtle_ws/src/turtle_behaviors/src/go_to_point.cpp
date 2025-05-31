@@ -36,9 +36,11 @@ NodeStatus GoToPoint::onRunning() {
     );
 
     // Compute current angle (Axis angle formula)
+    float chaser_angle;
     double q_w = chaser_pose->pose.orientation.w;  // Ranges from 0 to 1
     double q_z = chaser_pose->pose.orientation.z;  // Ranges from 0 to 1
-    double chaser_angle = 2 * acos(q_w) * q_z / abs(q_z);  // Ranges from 0 to 2*pi
+    if (q_z == 0) chaser_angle = 0;
+    else chaser_angle = 2 * acos(q_w) * q_z / abs(q_z);  // Ranges from 0 to 2*pi
 
     // Get angle difference between chaser and target
     double diff_angle  = target_angle - chaser_angle;
@@ -46,11 +48,9 @@ NodeStatus GoToPoint::onRunning() {
     // Add or subtract 2pi to compensate
     if (abs(diff_angle) > M_PI) {
         if (target_angle > 0) {
-            std::cout << "Subtracting 2pi" << std::endl;
             diff_angle = target_angle - chaser_angle - 2 * M_PI;
         }
         else {
-            std::cout << "Adding 2pi" << std::endl;
             diff_angle = target_angle - chaser_angle + 2 * M_PI;
         }
     }

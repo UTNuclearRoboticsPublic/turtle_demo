@@ -23,7 +23,7 @@ NodeStatus ScanSearch::tick() {
         target_pose->pose.position.x
     );
 
-    std::cout << "Angle: " << target_angle << "" << std::endl;
+    //std::cout << "Angle: " << target_angle << "" << std::endl;
 
     // Target spotted if angle less than 15 degrees
     if (fabs(target_angle) <= M_PI / 12) {

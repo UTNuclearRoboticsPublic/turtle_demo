@@ -4,9 +4,9 @@
     <KeepRunningUntilFailure>
       <Fallback>
         <Sequence name="Target Within Range">
-          <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{pose}"/>
-          <TargetWithinRange target_pose="{pose}" range="2.0"/>
-          <ChaseTarget target_pose="{pose}" chase_velocity="{chase_velocity}"/>
+          <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
+          <TargetWithinRange target_pose="{relative_pose}" range="2.0"/>
+          <ChaseTarget target_pose="{relative_pose}" chase_velocity="{chase_velocity}"/>
           <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
         </Sequence>
         <Sequence>
@@ -14,15 +14,15 @@
           <ReactiveSequence>
             <GetCurrentPose reference_frame="world" target_frame="turtle2" pose="{chaser_pose}"/>
             <InputDataNode last_known_pose="{last_known_pose}" chaser_pose="{chaser_pose}" data="{data}"/>
-            <DynamicSelector name="Target Out of Range" input_data="{data}" utility_threshold="0.1" utilities="{utils}">
+            <DynamicSelector name="Target Out of Range" input_data="{data}" utility_threshold="-1000" utilities="{utils}">
               <Fallback name="Scan Search">
                 <Sequence name="Scan Search Successful">
-                  <ScanSearch target_pose="{pose}" rotation_speed="1.0" scan_velocity="{scan_velocity}"/>
+                  <ScanSearch target_pose="{relative_pose}" rotation_speed="1.0" scan_velocity="{scan_velocity}"/>
                   <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
                   <ReactiveSequence>
-                    <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{pose}"/>
+                    <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
                     <Inverter>
-                      <TargetWithinRange target_pose="{pose}" range="2.0"/>
+                      <TargetWithinRange target_pose="{relative_pose}" range="2.0"/>
                     </Inverter>
                     <ForceSuccessNode>
                       <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
@@ -31,8 +31,16 @@
                   </ReactiveSequence>
                   <StopTurtle zero_velocity="{zero_velocity}"/>
                   <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{zero_velocity}"/>
+                  <AlwaysFailureNode/>
                 </Sequence>
-                <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{scan_velocity}"/>
+                <Sequence name="Proximity Check">
+                  <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
+                  <TargetWithinRange target_pose="{relative_pose}" range="2.0"/>
+                </Sequence>
+                <Sequence name="Scan Search Failed">
+                  <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{scan_velocity}"/>
+                  <AlwaysFailureNode/>
+                </Sequence>
               </Fallback>
             </DynamicSelector>
           </ReactiveSequence>
