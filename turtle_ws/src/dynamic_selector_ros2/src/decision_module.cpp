@@ -8,7 +8,7 @@ DecisionModule::DecisionModule(size_t input_size, size_t output_size) {
 }
 
 const std::vector<float> DecisionModule::getUtilities(const std::vector<float> input_data) const {
-        std::cout << "DM getUtilities..." << std::endl;
+        //std::cout << "DM getUtilities..." << std::endl;
         // Validate size of input data
         if (input_data.size() != input_size_ + output_size_) {
             throw std::runtime_error("Invalid input size: expected " + std::to_string(input_size_ + output_size_) +
@@ -16,7 +16,7 @@ const std::vector<float> DecisionModule::getUtilities(const std::vector<float> i
         }
 
         const std::vector<float> utils = computeUtilities(input_data);
-        std::cout << "DM computed utilities" << std::endl;
+        // std::cout << "DM computed utilities" << std::endl;
 
         // Validate size of utilities
         if (utils.size() != output_size_) {
