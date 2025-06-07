@@ -28,8 +28,18 @@ private:
         SHORT   // Increment the search path to the side by one interval
     };
     enum sub_phase {
-        FORWARD,    // Move forward until reaching target position
         TURN,       // Turn until facing in target direction
+        FORWARD,    // Move forward until reaching target position
     };
+    enum goal_direction {
+        UP,
+        DOWN
+    };
+
+    search_phase current_phase;
+    sub_phase current_sub_phase;
+    goal_direction goal;
+    double target_angle;
+    std::pair<double, double> target_point;
 };
 }

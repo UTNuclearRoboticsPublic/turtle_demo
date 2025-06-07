@@ -37,8 +37,8 @@ NodeStatus GoToPoint::onRunning() {
 
     // Compute current angle (Axis angle formula)
     float chaser_angle;
-    double q_w = chaser_pose->pose.orientation.w;  // Ranges from 0 to 1
-    double q_z = chaser_pose->pose.orientation.z;  // Ranges from 0 to 1
+    double q_w = chaser_pose->pose.orientation.w;
+    double q_z = chaser_pose->pose.orientation.z;
     if (q_z == 0) chaser_angle = 0;
     else chaser_angle = 2 * acos(q_w) * q_z / abs(q_z);  // Ranges from 0 to 2*pi
 

@@ -6,6 +6,7 @@
 #include <turtle_behaviors/scan_search.hpp>
 #include <turtle_behaviors/stop_turtle.hpp>
 #include <turtle_behaviors/go_to_point.hpp>
+#include <turtle_behaviors/patrol_search.hpp>
 #include <behaviortree_cpp/actions/sleep_node.h>
 #include <behaviortree_cpp/actions/always_failure_node.h>
 #include <behaviortree_cpp/decorators/force_success_node.h>
@@ -166,6 +167,7 @@ int main(int argc, char** argv) {
     factory.registerNodeType<BT::TargetWithinRange>("TargetWithinRange");
     factory.registerNodeType<BT::ChaseTarget>("ChaseTarget");
     factory.registerNodeType<BT::ScanSearch>("ScanSearch");
+    factory.registerNodeType<BT::PatrolSearch>("PatrolSearch");
     factory.registerNodeType<BT::StopTurtle>("StopTurtle");
     factory.registerNodeType<BT::GoToPoint>("GoToPoint");
 
@@ -180,9 +182,10 @@ int main(int argc, char** argv) {
     auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_tree.xml");
     std::string xml_models = BT::writeTreeNodesModelXML(factory);
     
+    std::cout << "Beginning behavior tree" << std::endl;
     tree.tickWhileRunning(std::chrono::milliseconds(100));
     rclcpp::shutdown();
-    std::cout << "Finished ticking tree" << std::endl;
+    std::cout << "Concluded behavior tree" << std::endl;
   
     return 0;
 }
