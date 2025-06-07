@@ -36,6 +36,7 @@ def generate_launch_description():
             package='turtle_demo',
             executable='turtle_BT',
             name='turtle_BT',
-            output='screen'
+            output='screen',
+            ros_arguments=['--log-level', 'warn']
         )
     ])
