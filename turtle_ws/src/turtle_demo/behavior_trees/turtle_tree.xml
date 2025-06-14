@@ -15,7 +15,7 @@
             <GetCurrentPose reference_frame="world" target_frame="turtle2" pose="{chaser_pose}"/>
             <InputDataNode last_known_pose="{last_known_pose}" chaser_pose="{chaser_pose}" data="{data}"/>
             <DynamicSelector name="Target Out of Range" input_data="{data}" utility_threshold="-1000" utilities="{utils}">
-              <Fallback name="Scan Search">
+              <!--Fallback name="Scan Search">
                 <Sequence name="Scan Search Successful">
                   <ScanSearch target_pose="{relative_pose}" rotation_speed="1.0" scan_velocity="{scan_velocity}"/>
                   <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
@@ -27,7 +27,7 @@
                     <ForceSuccessNode>
                       <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
                     </ForceSuccessNode>
-                    <GoToPoint last_known_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{chase_velocity}"/>
+                    <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{chase_velocity}"/>
                   </ReactiveSequence>
                   <StopTurtle zero_velocity="{zero_velocity}"/>
                   <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{zero_velocity}"/>
@@ -41,7 +41,22 @@
                   <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{scan_velocity}"/>
                   <AlwaysFailureNode/>
                 </Sequence>
-              </Fallback>
+              </Fallback-->
+              <Sequence name="Patrol Search">
+                <FindCorner corner_pose="{corner_pose}" radius="2.0" chaser_pose="{chaser_pose}"/>
+                <ReactiveSequence>
+                  <ForceSuccessNode>
+                    <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
+                  </ForceSuccessNode>
+                  <GoToPoint target_pose="{corner_pose}" chaser_pose="{chaser_pose}" chase_velocity="{chase_velocity}"/>
+                </ReactiveSequence>
+                <ReactiveSequence>
+                  <ForceSuccessNode>
+                    <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
+                  </ForceSuccessNode>
+                  <PatrolSearch chaser_pose="{chaser_pose}" radius="2.0" chase_velocity="{chase_velocity}"/>
+                </ReactiveSequence>
+              </Sequence>
             </DynamicSelector>
           </ReactiveSequence>
         </Sequence>

@@ -4,9 +4,9 @@ namespace BT {
 NodeStatus GoToPoint::onStart() {
     std::cout << "Go to Point: Beginning" << std::endl;
     // Verify inputs
-    geometry_msgs::msg::PoseStamped::SharedPtr last_known_pose, chaser_pose;
-    if (!getInput("last_known_pose", last_known_pose)) {
-        std::cout << "ERROR: No last known pose found." << std::endl;
+    geometry_msgs::msg::PoseStamped::SharedPtr target_pose, chaser_pose;
+    if (!getInput("target_pose", target_pose)) {
+        std::cout << "ERROR: No target pose found." << std::endl;
         return NodeStatus::FAILURE;
     };
 
@@ -19,12 +19,12 @@ NodeStatus GoToPoint::onStart() {
 }
 
 NodeStatus GoToPoint::onRunning() {
-    geometry_msgs::msg::PoseStamped::SharedPtr last_known_pose, chaser_pose;
-    getInput("last_known_pose", last_known_pose);
+    geometry_msgs::msg::PoseStamped::SharedPtr target_pose, chaser_pose;
+    getInput("target_pose", target_pose);
     getInput("chaser_pose", chaser_pose);
 
-    double x_diff = last_known_pose->pose.position.x - chaser_pose->pose.position.x;
-    double y_diff = last_known_pose->pose.position.y - chaser_pose->pose.position.y;
+    double x_diff = target_pose->pose.position.x - chaser_pose->pose.position.x;
+    double y_diff = target_pose->pose.position.y - chaser_pose->pose.position.y;
 
     // Create twist to send to chaser turtle
     geometry_msgs::msg::Twist chase_velocity;
@@ -56,12 +56,18 @@ NodeStatus GoToPoint::onRunning() {
     }
     
 
-    chase_velocity.angular.z = scaleRotationRate * diff_angle;  
-    chase_velocity.linear.x = 1.0;
+    chase_velocity.angular.z = scaleRotationRate * diff_angle;
+
+    double target_dist = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
+
+    // Don't move forward if the angle is too extreme
+    // Reduce speed at short distances
+    if (abs(diff_angle) <= M_PI / 2) chase_velocity.linear.x = std::min(target_dist + 0.1, 1.0);
+    else chase_velocity.linear.x = 0.0;
 
     setOutput("chase_velocity", chase_velocity);
 
-    if (sqrt(pow(x_diff, 2) + pow(y_diff, 2)) < 0.1) {
+    if (target_dist < 0.1) {
         std::cout << "Go to Point: Arrived at target." << std::endl;
         return NodeStatus::SUCCESS;
     }

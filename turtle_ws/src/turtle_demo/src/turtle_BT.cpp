@@ -7,6 +7,7 @@
 #include <turtle_behaviors/stop_turtle.hpp>
 #include <turtle_behaviors/go_to_point.hpp>
 #include <turtle_behaviors/patrol_search.hpp>
+#include <turtle_behaviors/find_corner.hpp>
 #include <behaviortree_cpp/actions/sleep_node.h>
 #include <behaviortree_cpp/actions/always_failure_node.h>
 #include <behaviortree_cpp/decorators/force_success_node.h>
@@ -152,8 +153,8 @@ class TurtleDecisionModule : public DecisionModule {
 
             std::vector<float> utils(output_size_);
             utils[0] = -k0 * input_data[0] - k1 * input_data[1] + k2 * input_data[2] + k3 * input_data[3];
-            std::cout << "Utility components: " << k0 * input_data[0] << ' ' << k1 * input_data[1] << ' ' <<
-                k2 * input_data[2] << ' ' << k3 * input_data[3] << std::endl;
+            // std::cout << "Utility components: " << k0 * input_data[0] << ' ' << k1 * input_data[1] << ' ' <<
+            //     k2 * input_data[2] << ' ' << k3 * input_data[3] << std::endl;
             return utils;
         }
 };
@@ -170,6 +171,7 @@ int main(int argc, char** argv) {
     factory.registerNodeType<BT::PatrolSearch>("PatrolSearch");
     factory.registerNodeType<BT::StopTurtle>("StopTurtle");
     factory.registerNodeType<BT::GoToPoint>("GoToPoint");
+    factory.registerNodeType<BT::FindCorner>("FindCorner");
 
     BT::TurtleDecisionModule* turtle_dm = new BT::TurtleDecisionModule();
     factory.registerNodeType<BT::DynamicSelector>("DynamicSelector", turtle_dm);

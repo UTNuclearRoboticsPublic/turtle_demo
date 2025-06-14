@@ -14,6 +14,7 @@ public:
     static PortsList providedPorts() {
         return {
             InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("chaser_pose", "Current pose of chaser in world frame"),
+            InputPort<double>("radius", "Sight radius of chaser"),
             OutputPort<geometry_msgs::msg::Twist>("chase_velocity", "Velocity to send to chaser turtle")
         };
     }
