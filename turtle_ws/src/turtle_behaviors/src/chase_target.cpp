@@ -1,7 +1,6 @@
 #include "turtle_behaviors/chase_target.hpp"
 
-namespace BT{
-
+namespace turtle_behaviors {
 NodeStatus ChaseTarget::tick() {
     geometry_msgs::msg::PoseStamped::SharedPtr target_pose;
     if (!getInput("target_pose", target_pose)) {
@@ -28,6 +27,6 @@ NodeStatus ChaseTarget::tick() {
     setOutput("chase_velocity", chase_velocity);
     return NodeStatus::SUCCESS;
 }
-} // BT
+} // turtle_behaviors
 
 

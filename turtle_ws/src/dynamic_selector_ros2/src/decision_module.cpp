@@ -2,6 +2,7 @@
 #include <iostream>
 #include <dynamic_selector_ros2/decision_module.h>
 
+namespace DS {
 DecisionModule::DecisionModule(size_t input_size, size_t output_size) {
     input_size_ = input_size;
     output_size_ = output_size;
@@ -26,3 +27,4 @@ const std::vector<float> DecisionModule::getUtilities(const std::vector<float> i
 
         return utils;  
 }
+} // DS

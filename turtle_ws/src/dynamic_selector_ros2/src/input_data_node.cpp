@@ -1,8 +1,6 @@
 #include <dynamic_selector_ros2/input_data_node.h>
 
-namespace BT
-{
-
+namespace DS {
 InputDataNode::InputDataNode(const std::string& name, const BT::NodeConfig& config)
   : SyncActionNode(name, config) {};
 
@@ -25,5 +23,4 @@ NodeStatus InputDataNode::tick() {
   };
   return NodeStatus::SUCCESS;
 };
-
-}  // namespace BT
+}  // DS

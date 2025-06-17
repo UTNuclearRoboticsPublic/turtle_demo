@@ -15,8 +15,13 @@
 
 #include "behaviortree_cpp/action_node.h"
 
-namespace BT
-{
+using BT::NodeConfig;
+using BT::NodeStatus;
+using BT::InputPort;
+using BT::OutputPort;
+using BT::PortsList;
+
+namespace DS {
 /**
  * TODO update this
  * @brief The Learning is action used to store a string
@@ -34,7 +39,7 @@ namespace BT
  *
  * This will copy the type and content of {src_port} into {dst_port}
  */
-class LearningNode : public SyncActionNode
+class LearningNode : public BT::SyncActionNode
 {
 public:
   LearningNode(const std::string& name, const NodeConfig& config)
@@ -51,7 +56,7 @@ public:
   }
 
 private:
-  virtual BT::NodeStatus tick() override
+  virtual NodeStatus tick() override
   {
     std::string output_key;
     if(!getInput("output_key", output_key))
@@ -89,6 +94,6 @@ private:
     return NodeStatus::SUCCESS;
   }
 };
-}  // namespace BT
+}  // DS
 
 #endif

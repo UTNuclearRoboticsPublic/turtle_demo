@@ -14,8 +14,7 @@
 #include <dynamic_selector_ros2/dynamic_selector.h>
 #include <iostream>
 
-namespace BT {
-
+namespace DS {
 DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& config,
 	DecisionModule* decision_module, bool make_asynch)
 : ControlNode::ControlNode(name, config), decision_module_(decision_module), asynch_(make_asynch)
@@ -134,7 +133,7 @@ NodeStatus DynamicSelector::tick() {
 			}
 			break;
 			case NodeStatus::IDLE: {
-				throw LogicError("[", name(), "]: Children should not return IDLE");
+				throw BT::LogicError("[", name(), "]: Children should not return IDLE");
 			}
 		}  // end switch
 	}    // end while loop
@@ -152,5 +151,4 @@ NodeStatus DynamicSelector::tick() {
 void DynamicSelector::halt() {
 	ControlNode::halt();
 }
-
-}  // namespace BT
+}  // DS

@@ -1,6 +1,6 @@
 #include "turtle_behaviors/patrol_search.hpp"
 
-namespace BT {
+namespace turtle_behaviors {
 NodeStatus PatrolSearch::onStart() {
     std::cout << "Patrol Search: Beginning" << std::endl;
     // Verify input
@@ -145,4 +145,4 @@ NodeStatus PatrolSearch::onRunning() {
 void PatrolSearch::onHalted() {
     return;
 }
-}
+} // turtle_behaviors

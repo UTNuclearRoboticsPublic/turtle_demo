@@ -3,12 +3,18 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include <iostream>
 
-namespace BT{
-class ChaseTarget : public SyncActionNode
+using BT::NodeConfig;
+using BT::NodeStatus;
+using BT::InputPort;
+using BT::OutputPort;
+using BT::PortsList;
+
+namespace turtle_behaviors {
+class ChaseTarget : public BT::SyncActionNode
 {
 public:
     ChaseTarget(const std::string& name, const NodeConfig& conf)
-        : SyncActionNode(name, conf) {}
+        : BT::SyncActionNode(name, conf) {}
 
     static PortsList providedPorts() {
         return {
@@ -19,4 +25,4 @@ public:
 
     NodeStatus tick() override;
 };
-} // BT
+} // turtle_behaviors

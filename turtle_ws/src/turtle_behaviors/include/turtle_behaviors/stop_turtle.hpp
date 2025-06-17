@@ -1,12 +1,18 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <behaviortree_cpp/action_node.h>
 
-namespace BT{
-class StopTurtle : public SyncActionNode
+using BT::NodeConfig;
+using BT::NodeStatus;
+using BT::InputPort;
+using BT::OutputPort;
+using BT::PortsList;
+
+namespace turtle_behaviors {
+class StopTurtle : public BT::SyncActionNode
 {
 public:
     StopTurtle(const std::string& name, const NodeConfig& conf)
-        : SyncActionNode(name, conf) {}
+        : BT::SyncActionNode(name, conf) {}
 
     static PortsList providedPorts() {
       return {
@@ -20,4 +26,4 @@ public:
         return NodeStatus::SUCCESS;
     }
 };
-} // BT
+} // turtle_behaviors

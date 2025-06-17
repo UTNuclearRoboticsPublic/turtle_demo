@@ -16,8 +16,7 @@
 #include "behaviortree_cpp/control_node.h"
 #include "decision_module.h"
 
-namespace BT {
-	
+namespace DS {
 /**
  * @brief The DynamicSelector is a control node with the following characteristics:
  * Receives data through an input port every tick
@@ -53,5 +52,4 @@ class DynamicSelector : public ControlNode {
 
 		virtual BT::NodeStatus tick() override;
 };
-
-}  // namespace BT
+}  // DS

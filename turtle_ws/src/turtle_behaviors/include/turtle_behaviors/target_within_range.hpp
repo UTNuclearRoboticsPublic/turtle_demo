@@ -2,12 +2,18 @@
 #include <behaviortree_cpp/condition_node.h>
 #include <iostream>
 
-namespace BT{
-class TargetWithinRange : public ConditionNode
+using BT::NodeConfig;
+using BT::NodeStatus;
+using BT::InputPort;
+using BT::OutputPort;
+using BT::PortsList;
+
+namespace turtle_behaviors {
+class TargetWithinRange : public BT::ConditionNode
 {
 public:
     TargetWithinRange(const std::string& name, const NodeConfig& conf)
-        : ConditionNode(name, conf) {}
+        : BT::ConditionNode(name, conf) {}
 
     static PortsList providedPorts() {
         return {
@@ -18,4 +24,4 @@ public:
 
     NodeStatus tick() override;
 };
-} // BT
+} // turtle_behaviors

@@ -10,8 +10,7 @@
 
 
 
-using namespace BT;
-
+namespace DS {
 class TestInputNode : public SmartInputNode {
     public:
         TestInputNode(const std::string& name, const BT::NodeConfig& config) : SmartInputNode(name, config) {}
@@ -58,21 +57,22 @@ class TestDecisionModule : public DecisionModule {
             return utils;
         }
 };
+} // DS
 
-BT::NodeStatus print(std::string str) {
+NodeStatus print(std::string str) {
     std::cout << str << std::endl;
-    return BT::NodeStatus::SUCCESS;
+    return NodeStatus::SUCCESS;
 };
 
 int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
-    BehaviorTreeFactory factory;
+    BT::BehaviorTreeFactory factory;
 
     // Instantiate decision module
-    TestDecisionModule* test_DM = new TestDecisionModule();
+    DS::TestDecisionModule* test_DM = new DS::TestDecisionModule();
 
-    factory.registerNodeType<TestInputNode>("DataInputNode");
-    factory.registerNodeType<DynamicSelector>("DynamicSelector", test_DM, false);
+    factory.registerNodeType<DS::TestInputNode>("DataInputNode");
+    factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", test_DM, false);
 
     factory.registerNodeType<nrg_utility_behaviors::GetMessageFromTopic>("GetMessageFromTopic");
 
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
     factory.registerSimpleAction("Option2", [&](BT::TreeNode&){ return print("Option 2\n"); });
 
     auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/dynamic_selector_ros2/behavior_trees/test_tree.xml");
-    Groot2Publisher publisher(tree, 5555);
+    BT::Groot2Publisher publisher(tree, 5555);
     tree.tickWhileRunning();
     
     return 0;

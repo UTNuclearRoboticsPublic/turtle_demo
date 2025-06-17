@@ -15,15 +15,20 @@
 
 #include "behaviortree_cpp/action_node.h"
 
-namespace BT
-{
+using BT::NodeConfig;
+using BT::NodeStatus;
+using BT::InputPort;
+using BT::OutputPort;
+using BT::PortsList;
+
+namespace DS {
 /**
  * @brief The SmartInputNode collects data and packages it for the dynamic selector.
  * 
  * This class is abstract. To use it, create a derived class that overrides the pure
  * virtual method getInputData() with a function that returns a vector of data values.
  */
-class SmartInputNode : public SyncActionNode
+class SmartInputNode : public BT::SyncActionNode
 {
 public:
   SmartInputNode(const std::string& name, const NodeConfig& config);
@@ -41,9 +46,9 @@ public:
   // virtual PortsList inputPorts() = 0;
 
 private:
-  BT::NodeStatus tick() final;
+  NodeStatus tick() final;
   virtual std::vector<float> getInputData() = 0;
 };
-}  // namespace BT
+}  // DS
 
 #endif

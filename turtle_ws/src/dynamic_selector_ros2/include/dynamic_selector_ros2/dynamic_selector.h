@@ -19,7 +19,13 @@
 #ifndef DYNAMIC_SELECTOR_H
 #define DYNAMIC_SELECTOR_H
 
-namespace BT {
+using BT::NodeConfig;
+using BT::NodeStatus;
+using BT::InputPort;
+using BT::OutputPort;
+using BT::PortsList;
+
+namespace DS {
 	
 /**
  * @brief The DynamicSelector is a control node with the following characteristics:
@@ -29,7 +35,7 @@ namespace BT {
  * Succeeds if any child succeeds
  * Fails if all child utility scores are below a threshold
  */
-class DynamicSelector : public ControlNode {
+class DynamicSelector : public BT::ControlNode {
 	public:
 		// For some reason, BTCPP doesn't like & for extra args
 		DynamicSelector(const std::string& name, const NodeConfig& config,
@@ -54,9 +60,8 @@ class DynamicSelector : public ControlNode {
 		const DecisionModule* decision_module_;
 		std::vector<float> prev_utils_;
 
-		virtual BT::NodeStatus tick() override;
+		virtual NodeStatus tick() override;
 };
-
-}  // namespace BT
+}  // DS
 
 #endif

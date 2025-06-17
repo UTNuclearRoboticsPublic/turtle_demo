@@ -4,12 +4,18 @@
 #include <iostream>
 #include <math.h>
 
-namespace BT{
-class ScanSearch : public SyncActionNode
+using BT::NodeConfig;
+using BT::NodeStatus;
+using BT::InputPort;
+using BT::OutputPort;
+using BT::PortsList;
+
+namespace turtle_behaviors {
+class ScanSearch : public BT::SyncActionNode
 {
 public:
     ScanSearch(const std::string& name, const NodeConfig& conf)
-        : SyncActionNode(name, conf) {}
+        : BT::SyncActionNode(name, conf) {}
 
     static PortsList providedPorts() {
       return {
@@ -21,4 +27,4 @@ public:
 
     NodeStatus tick() override;
 };
-} // BT
+} // turtle_behaviors

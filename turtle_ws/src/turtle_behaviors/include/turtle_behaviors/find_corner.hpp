@@ -2,12 +2,18 @@
 #include <behaviortree_cpp/action_node.h>
 #include "geometry_msgs/msg/pose_stamped.hpp"
 
-namespace BT{
-class FindCorner : public SyncActionNode
+using BT::NodeConfig;
+using BT::NodeStatus;
+using BT::InputPort;
+using BT::OutputPort;
+using BT::PortsList;
+
+namespace turtle_behaviors {
+class FindCorner : public BT::SyncActionNode
 {
 public:
     FindCorner(const std::string& name, const NodeConfig& conf)
-        : SyncActionNode(name, conf) {}
+        : BT::SyncActionNode(name, conf) {}
 
     static PortsList providedPorts() {
       return {
@@ -51,4 +57,4 @@ public:
       return NodeStatus::SUCCESS;
     }
 };
-} // BT
+} // turtle_behaviors

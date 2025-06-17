@@ -4,6 +4,8 @@
 
 using std::size_t;
 
+namespace DS {
+
 /**
  * @brief The DecisionModule receives data from the DynamicSelector and returns utility values
  * corresponding to the Selector's children.
@@ -23,3 +25,4 @@ class DecisionModule {
     private:
         virtual const std::vector<float> computeUtilities(const std::vector<float> input_data) const = 0;
 };
+} // DS

@@ -1,8 +1,6 @@
 #include <dynamic_selector_ros2/smart_input_node.h>
 
-namespace BT
-{
-
+namespace DS {
 SmartInputNode::SmartInputNode(const std::string& name, const BT::NodeConfig& config)
   : SyncActionNode(name, config) {};
 
@@ -24,4 +22,4 @@ NodeStatus SmartInputNode::tick() {
   return NodeStatus::SUCCESS;
 };
 
-}  // namespace BT
+}  // DS

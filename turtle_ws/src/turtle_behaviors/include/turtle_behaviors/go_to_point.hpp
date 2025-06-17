@@ -4,12 +4,18 @@
 #include <iostream>
 #include <math.h>
 
-namespace BT{
-class GoToPoint : public StatefulActionNode
+using BT::NodeConfig;
+using BT::NodeStatus;
+using BT::InputPort;
+using BT::OutputPort;
+using BT::PortsList;
+
+namespace turtle_behaviors {
+class GoToPoint : public BT::StatefulActionNode
 {
 public:
     GoToPoint(const std::string& name, const NodeConfig& conf)
-        : StatefulActionNode(name, conf) {}
+        : BT::StatefulActionNode(name, conf) {}
 
     static PortsList providedPorts() {
         return {
@@ -23,4 +29,4 @@ public:
     NodeStatus onRunning() override;
     void onHalted() override;
 };
-}
+} // turtle_behaviors

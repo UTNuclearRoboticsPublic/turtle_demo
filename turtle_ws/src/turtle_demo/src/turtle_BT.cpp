@@ -1,13 +1,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <behaviortree_cpp/bt_factory.h>
 #include <nrg_utility_behaviors/nrg_utility_behaviors.hpp>
-#include <turtle_behaviors/target_within_range.hpp>
-#include <turtle_behaviors/chase_target.hpp>
-#include <turtle_behaviors/scan_search.hpp>
-#include <turtle_behaviors/stop_turtle.hpp>
-#include <turtle_behaviors/go_to_point.hpp>
-#include <turtle_behaviors/patrol_search.hpp>
-#include <turtle_behaviors/find_corner.hpp>
+#include <turtle_behaviors/turtle_behaviors.hpp>
 #include <behaviortree_cpp/actions/sleep_node.h>
 #include <behaviortree_cpp/actions/always_failure_node.h>
 #include <behaviortree_cpp/decorators/force_success_node.h>
@@ -20,11 +14,11 @@
 #include <iostream>
 #include <fstream>
 
-namespace BT {
+namespace DS {
 typedef geometry_msgs::msg::PoseStamped PoseStamped;
 class TurtleInputNode : public InputDataNode {
     public:
-        TurtleInputNode(const std::string& name, const BT::NodeConfig& config) :
+        TurtleInputNode(const std::string& name, const NodeConfig& config) :
             InputDataNode(name, config) {
                 failed_attempts = 0;
                 chasing = true;
@@ -158,24 +152,24 @@ class TurtleDecisionModule : public DecisionModule {
             return utils;
         }
 };
-} // BT
+} // DS
 
 int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
 
     BT::BehaviorTreeFactory factory;
     nrg_utility_behaviors::registerBehaviors(factory);
-    factory.registerNodeType<BT::TargetWithinRange>("TargetWithinRange");
-    factory.registerNodeType<BT::ChaseTarget>("ChaseTarget");
-    factory.registerNodeType<BT::ScanSearch>("ScanSearch");
-    factory.registerNodeType<BT::PatrolSearch>("PatrolSearch");
-    factory.registerNodeType<BT::StopTurtle>("StopTurtle");
-    factory.registerNodeType<BT::GoToPoint>("GoToPoint");
-    factory.registerNodeType<BT::FindCorner>("FindCorner");
+    factory.registerNodeType<turtle_behaviors::TargetWithinRange>("TargetWithinRange");
+    factory.registerNodeType<turtle_behaviors::ChaseTarget>("ChaseTarget");
+    factory.registerNodeType<turtle_behaviors::ScanSearch>("ScanSearch");
+    factory.registerNodeType<turtle_behaviors::PatrolSearch>("PatrolSearch");
+    factory.registerNodeType<turtle_behaviors::StopTurtle>("StopTurtle");
+    factory.registerNodeType<turtle_behaviors::GoToPoint>("GoToPoint");
+    factory.registerNodeType<turtle_behaviors::FindCorner>("FindCorner");
 
-    BT::TurtleDecisionModule* turtle_dm = new BT::TurtleDecisionModule();
-    factory.registerNodeType<BT::DynamicSelector>("DynamicSelector", turtle_dm);
-    factory.registerNodeType<BT::TurtleInputNode>("InputDataNode");
+    DS::TurtleDecisionModule* turtle_dm = new DS::TurtleDecisionModule();
+    factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", turtle_dm);
+    factory.registerNodeType<DS::TurtleInputNode>("InputDataNode");
 
     factory.registerNodeType<BT::SleepNode>("SleepNode");
     factory.registerNodeType<BT::ForceSuccessNode>("ForceSuccessNode");

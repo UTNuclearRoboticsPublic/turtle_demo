@@ -1,6 +1,6 @@
 #include "turtle_behaviors/go_to_point.hpp"
 
-namespace BT {
+namespace turtle_behaviors {
 NodeStatus GoToPoint::onStart() {
     std::cout << "Go to Point: Beginning" << std::endl;
     // Verify inputs
@@ -80,4 +80,4 @@ NodeStatus GoToPoint::onRunning() {
 void GoToPoint::onHalted() {
     return;
 }
-}
+} // turtle_behaviors

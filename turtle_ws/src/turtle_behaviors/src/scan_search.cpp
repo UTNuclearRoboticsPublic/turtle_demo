@@ -1,6 +1,6 @@
 #include "turtle_behaviors/scan_search.hpp"
 
-namespace BT {
+namespace turtle_behaviors {
 NodeStatus ScanSearch::tick() {
 
     geometry_msgs::msg::PoseStamped::SharedPtr target_pose;
@@ -39,4 +39,4 @@ NodeStatus ScanSearch::tick() {
         return NodeStatus::FAILURE;
     }
 }
-} // BT
+} // turtle_behaviors

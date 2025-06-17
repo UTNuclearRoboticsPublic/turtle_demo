@@ -1,7 +1,6 @@
 #include "turtle_behaviors/target_within_range.hpp"
 
-namespace BT{
-
+namespace turtle_behaviors {
 NodeStatus TargetWithinRange::tick() {
     geometry_msgs::msg::PoseStamped::SharedPtr target_pose;
     double range;
@@ -21,4 +20,4 @@ NodeStatus TargetWithinRange::tick() {
         return NodeStatus::FAILURE;
     }
 }
-} // BT
+} // turtle_behaviors

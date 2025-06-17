@@ -15,15 +15,14 @@
 
 #include "behaviortree_cpp/action_node.h"
 
-namespace BT
-{
+namespace DS {
 /**
  * @brief The InputDataNode collects data and packages it for the dynamic selector.
  * 
  * This class is abstract. To use it, create a derived class that overrides the pure
  * virtual method getInputData() with a function that returns a vector of data values.
  */
-class InputDataNode : public SyncActionNode
+class InputDataNode : public BT::SyncActionNode
 {
 public:
   InputDataNode(const std::string& name, const NodeConfig& config);
@@ -39,6 +38,6 @@ private:
   BT::NodeStatus tick() final;
   virtual std::vector<float> getInputData() = 0;
 };
-}  // namespace BT
+}  // DS
 
 #endif

@@ -4,12 +4,18 @@
 #include <iostream>
 #include <math.h>
 
-namespace BT{
-class PatrolSearch : public StatefulActionNode
+using BT::NodeConfig;
+using BT::NodeStatus;
+using BT::InputPort;
+using BT::OutputPort;
+using BT::PortsList;
+
+namespace turtle_behaviors {
+class PatrolSearch : public BT::StatefulActionNode
 {
 public:
     PatrolSearch(const std::string& name, const NodeConfig& conf)
-        : StatefulActionNode(name, conf) {}
+        : BT::StatefulActionNode(name, conf) {}
 
     static PortsList providedPorts() {
         return {
@@ -43,4 +49,4 @@ private:
     double target_angle;
     std::pair<double, double> target_point;
 };
-}
+} // turtle_behaviors
