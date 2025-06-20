@@ -11,20 +11,27 @@ using BT::OutputPort;
 using BT::PortsList;
 
 namespace turtle_behaviors {
-class ScanSearch : public BT::SyncActionNode
+class ScanSearch : public BT::StatefulActionNode
 {
 public:
     ScanSearch(const std::string& name, const NodeConfig& conf)
-        : BT::SyncActionNode(name, conf) {}
+        : BT::StatefulActionNode(name, conf) {}
 
     static PortsList providedPorts() {
       return {
-        InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("target_pose", "Pose of target relative to chaser"),
+        InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("relative_pose", "Pose of target relative to chaser"),
+        InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("chaser_pose", "Pose of chaser in world frame"),
         InputPort<double>("rotation_speed", "Rotation speed of scan in rad/s"),
         OutputPort<geometry_msgs::msg::Twist>("scan_velocity", "Velocity sent to chaser turtle")
       };
     }
 
-    NodeStatus tick() override;
+    NodeStatus onStart() override;
+    NodeStatus onRunning() override;
+    void onHalted() override;
+
+private:
+    double total_rotation;
+    double last_angle;
 };
 } // turtle_behaviors

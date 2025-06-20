@@ -3,6 +3,7 @@
 namespace turtle_behaviors {
 NodeStatus PatrolSearch::onStart() {
     std::cout << "Patrol Search: Beginning" << std::endl;
+    
     // Verify input
     geometry_msgs::msg::PoseStamped::SharedPtr chaser_pose;
     if (!getInput("chaser_pose", chaser_pose)) {

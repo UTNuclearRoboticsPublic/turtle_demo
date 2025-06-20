@@ -18,7 +18,7 @@ public:
 
     static PortsList providedPorts() {
         return {
-            InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("target_pose", "Pose of target relative to chaser"),
+            InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("relative_pose", "Pose of target relative to chaser"),
             OutputPort<geometry_msgs::msg::Twist>("chase_velocity", "Velocity to send to chaser turtle")
         };
     }

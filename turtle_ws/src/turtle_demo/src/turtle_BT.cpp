@@ -58,6 +58,12 @@ class TurtleInputNode : public InputDataNode {
             // Input 2: Number of failed attempts
             // If chaser is chasing, add 1 when chaser reaches last known pose, then stop chasing
             // If chaser is not at last known pose, begin chasing
+
+            // Instead of doing this, the search nodes should probably report their failure count
+            // Need to make scan search a stateful behavior
+            // Only track failed attempts for the behavior you're currently doing
+            // Failed scan attempt should be a 360 degree turn
+
             float x_diff = last_known_pose->pose.position.x - chaser_pose->pose.position.x;
             float y_diff = last_known_pose->pose.position.y - chaser_pose->pose.position.y;
             float target_distance = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
@@ -98,7 +104,13 @@ class TurtleInputNode : public InputDataNode {
                 pow(last_known_pose->pose.position.y - 5.5, 2)
             );
 
-            return {time_diff.count(), failed_attempts, los_dist, target_center_distance};
+            // Input 5: Distance from center to current chaser position
+            float chaser_center_distance = sqrt(
+                pow(chaser_pose->pose.position.x - 5.5, 2) +
+                pow(chaser_pose->pose.position.y - 5.5, 2)
+            );
+
+            return {time_diff.count(), failed_attempts, los_dist, target_center_distance, chaser_center_distance};
         }
 
         bool equal_pose(PoseStamped pose_1, PoseStamped pose_2) {
@@ -136,19 +148,27 @@ class TurtleInputNode : public InputDataNode {
 
 class TurtleDecisionModule : public DecisionModule {
     public:
-        TurtleDecisionModule() : DecisionModule(4, 1) {}
+        TurtleDecisionModule() : DecisionModule(5, 2) {}
         const std::vector<float> computeUtilities(const std::vector<float> input_data) const override {
             // std::cout << "DM computeUtilities..." << std::endl;
-            // Weights for input data variables
-            float k0 = 0.01;  // Time (-)
-            float k1 = 1;  // Failed attempts (-)
-            float k2 = 1;  // Line of sight (+)
-            float k3 = 1;  // Target displacement (+)
+            // Weights for scan search
+            float k_a0 = 0.01;  // Time (-)
+            float k_a1 = 1;  // Failed attempts (-)
+            float k_a2 = 1;  // Line of sight (+)
+            float k_a3 = 1;  // Target displacement (+)
+
+            // Weights for patrol search
+            float k_b0 = 0.01;  // Time (+)
+            float k_b1 = 1;  // Failed attempts (-)
+            float k_b2 = 1;  // Chaser displacement (+)
 
             std::vector<float> utils(output_size_);
-            utils[0] = -k0 * input_data[0] - k1 * input_data[1] + k2 * input_data[2] + k3 * input_data[3];
+            utils[0] = -k_a0 * input_data[0] - k_a1 * input_data[1] + k_a2 * input_data[2] + k_a3 * input_data[3];
+            utils[1] = k_b0 * input_data[0] - k_b1 * input_data[1] + k_b2 * input_data[4];
             // std::cout << "Utility components: " << k0 * input_data[0] << ' ' << k1 * input_data[1] << ' ' <<
             //     k2 * input_data[2] << ' ' << k3 * input_data[3] << std::endl;
+
+            std::cout << "Utilities: (" << std::to_string(utils[0]) << ", " << std::to_string(utils[1]) << ')' << std::endl;
             return utils;
         }
 };
