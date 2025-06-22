@@ -27,12 +27,16 @@ DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& conf
 	else
 		setRegistrationID("DynamicSelector");
 
-	prev_utils_ = std::vector<float>();
+	//prev_utils_ = std::vector<float>();
 }
 
 // This method gets called whenever we tick this node
 NodeStatus DynamicSelector::tick() {
-	// std::cout << "Ticking Dynamic Selector" << std::endl;\
+	// std::cout << "Ticking Dynamic Selector" << std::endl;
+
+	// Initialize fail_count_vector
+	// Needs to be done in tick() because child nodes aren't added yet in constructor
+	if (fail_count_.size() == 0) fail_count_ = std::vector<int>(children_nodes_.size());
 
 	// Read input ports
 	std::vector<float> input_data;
@@ -42,21 +46,20 @@ NodeStatus DynamicSelector::tick() {
 
 	// Verify ports have data
 	if (!input_data_expected.has_value()) {
-		throw std::runtime_error("Missing required port \"input_data\" for DynamicSelector, aborting");
+		throw std::runtime_error("DS: Missing required port \"input_data\" for DynamicSelector, aborting");
         return BT::NodeStatus::FAILURE;
     }
 
 	// children_nodes_ is a vector of TreeNodes
-	// TODO add a clause that checks if output size matches number of child nodes
 	const size_t children_count = children_nodes_.size();
 
 	// Concatenate previous utilities to input data if they exist
-	if (prev_utils_.size() > 0) {
-		input_data.insert(input_data.end(), prev_utils_.begin(), prev_utils_.end());
-	} else {
-		// Use 0 for previous utilities if there are none
-		for (size_t i = 0; i < children_count; i++) input_data.push_back(0);
-	}
+	// if (prev_utils_.size() > 0) {
+	// 	input_data.insert(input_data.end(), prev_utils_.begin(), prev_utils_.end());
+	// } else {
+	// 	// Use 0 for previous utilities if there are none
+	// 	for (size_t i = 0; i < children_count; i++) input_data.push_back(0);
+	// }
 
 	setStatus(NodeStatus::RUNNING);
 
@@ -68,9 +71,15 @@ NodeStatus DynamicSelector::tick() {
 
 	// Get utility scores
 	// std::cout << "Getting utilities..." << std::endl;
-	const std::vector<float> utilities = decision_module_->getUtilities(input_data);
-	prev_utils_ = utilities;
+	const std::vector<float> utilities = decision_module_->getUtilities(input_data, fail_count_);
+	// prev_utils_ = utilities;
 	// std::cout << "Got utilities." << std::endl;
+
+	// Check that utilities size matches number of children
+	if (utilities.size() != children_count) {
+		throw std::runtime_error("DS: Number of utility values and number of child nodes don't match");
+		return NodeStatus::FAILURE;
+	}
 
 	// Create pair vector of utilities and nodes
 	std::vector<std::pair<float, TreeNode*>> util_node_pairs;
@@ -114,7 +123,13 @@ NodeStatus DynamicSelector::tick() {
 				return child_status;
 			}
 			case NodeStatus::FAILURE: {
-				current_child_idx++;
+				// Increment this child node's failure count by 1
+				// Failure count vector matches original child node order
+				size_t original_idx = std::find(
+					children_nodes_.begin(), children_nodes_.end(), current_child_node) - children_nodes_.begin();
+				fail_count_[original_idx]++;
+				std::cout << "Fail count: (" << fail_count_[0] << ", " << fail_count_[1] << ")" << std::endl;
+
 				// Return the execution flow if the child is async,
 				// to make this interruptable.
 				// If this is an async node, check for interruptions after failure
@@ -122,8 +137,8 @@ NodeStatus DynamicSelector::tick() {
 					current_child_idx < children_count)
 				{
 					emitWakeUpSignal();
-					return NodeStatus::RUNNING;
 				}
+				return NodeStatus::RUNNING;
 			}
 			break;  // Break here because the fail case may not return
 			case NodeStatus::SKIPPED: {

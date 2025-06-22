@@ -5,6 +5,7 @@
 #include <behaviortree_cpp/actions/sleep_node.h>
 #include <behaviortree_cpp/actions/always_failure_node.h>
 #include <behaviortree_cpp/decorators/force_success_node.h>
+#include <behaviortree_cpp/decorators/force_failure_node.h>
 #include <behaviortree_cpp/xml_parsing.h>
 #include <behaviortree_cpp/loggers/groot2_publisher.h>
 #include <dynamic_selector_ros2/dynamic_selector.h>
@@ -149,22 +150,28 @@ class TurtleInputNode : public InputDataNode {
 class TurtleDecisionModule : public DecisionModule {
     public:
         TurtleDecisionModule() : DecisionModule(5, 2) {}
-        const std::vector<float> computeUtilities(const std::vector<float> input_data) const override {
+        const std::vector<float> computeUtilities(const std::vector<float> input_data, const std::vector<int> fail_count) const override {
+            std::cout << "Failure count: (";
+            for (size_t i = 0; i < output_size_; i++) {
+                std::cout << fail_count[i] << ", ";
+            }
+            std::cout << ')' << std::endl;
+
             // std::cout << "DM computeUtilities..." << std::endl;
             // Weights for scan search
             float k_a0 = 0.01;  // Time (-)
-            float k_a1 = 1;  // Failed attempts (-)
-            float k_a2 = 1;  // Line of sight (+)
-            float k_a3 = 1;  // Target displacement (+)
+            float k_a1 = 1;  // Line of sight (+)
+            float k_a2 = 1;  // Target displacement (+)
+            float k_a_fail = 1;  // Failed attempts (-)
 
             // Weights for patrol search
             float k_b0 = 0.01;  // Time (+)
-            float k_b1 = 1;  // Failed attempts (-)
-            float k_b2 = 1;  // Chaser displacement (+)
+            float k_b1 = 1;  // Chaser displacement (+)
+            float k_b_fail = 1;  // Failed attempts (-)
 
             std::vector<float> utils(output_size_);
-            utils[0] = -k_a0 * input_data[0] - k_a1 * input_data[1] + k_a2 * input_data[2] + k_a3 * input_data[3];
-            utils[1] = k_b0 * input_data[0] - k_b1 * input_data[1] + k_b2 * input_data[4];
+            utils[0] = -k_a0 * input_data[0] + k_a1 * input_data[1] + k_a2 * input_data[2] - k_a_fail * fail_count[0];
+            utils[1] = k_b0 * input_data[0] + k_b1 * input_data[3] - k_b_fail * fail_count[1];
             // std::cout << "Utility components: " << k0 * input_data[0] << ' ' << k1 * input_data[1] << ' ' <<
             //     k2 * input_data[2] << ' ' << k3 * input_data[3] << std::endl;
 
@@ -179,6 +186,8 @@ int main(int argc, char** argv) {
 
     BT::BehaviorTreeFactory factory;
     nrg_utility_behaviors::registerBehaviors(factory);
+
+    // Register turtle behaviors
     factory.registerNodeType<turtle_behaviors::TargetWithinRange>("TargetWithinRange");
     factory.registerNodeType<turtle_behaviors::ChaseTarget>("ChaseTarget");
     factory.registerNodeType<turtle_behaviors::ScanSearch>("ScanSearch");
@@ -187,13 +196,18 @@ int main(int argc, char** argv) {
     factory.registerNodeType<turtle_behaviors::GoToPoint>("GoToPoint");
     factory.registerNodeType<turtle_behaviors::FindCorner>("FindCorner");
 
+    // Register BTCPP behaviors
+    factory.registerNodeType<BT::SleepNode>("SleepNode");
+    factory.registerNodeType<BT::ForceSuccessNode>("ForceSuccessNode");
+    factory.registerNodeType<BT::ForceFailureNode>("ForceFailureNode");
+    factory.registerNodeType<BT::AlwaysFailureNode>("AlwaysFailureNode");
+
+    // Register Dynamic Selector behaviors
     DS::TurtleDecisionModule* turtle_dm = new DS::TurtleDecisionModule();
     factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", turtle_dm);
     factory.registerNodeType<DS::TurtleInputNode>("InputDataNode");
 
-    factory.registerNodeType<BT::SleepNode>("SleepNode");
-    factory.registerNodeType<BT::ForceSuccessNode>("ForceSuccessNode");
-    factory.registerNodeType<BT::AlwaysFailureNode>("AlwaysFailureNode");
+    
 
     auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_tree.xml");
     std::string xml_models = BT::writeTreeNodesModelXML(factory);

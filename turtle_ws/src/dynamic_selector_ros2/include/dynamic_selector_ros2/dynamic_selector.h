@@ -58,7 +58,8 @@ class DynamicSelector : public BT::ControlNode {
 		// size_t skipped_count_ = 0;
 		bool asynch_ = false;
 		const DecisionModule* decision_module_;
-		std::vector<float> prev_utils_;
+		// std::vector<float> prev_utils_;
+		std::vector<int> fail_count_;
 
 		virtual NodeStatus tick() override;
 };

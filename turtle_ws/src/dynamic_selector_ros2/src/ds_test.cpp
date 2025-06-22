@@ -44,7 +44,7 @@ class TestInputNode : public SmartInputNode {
 class TestDecisionModule : public DecisionModule {
     public:
         TestDecisionModule() : DecisionModule(2, 2) {}
-        const std::vector<float> computeUtilities(const std::vector<float> input_data) const override {
+        const std::vector<float> computeUtilities(const std::vector<float> input_data, const std::vector<int> fail_count) const override {
             std::vector<float> utils;
             if (input_data[1] == 0) {
                 utils = {input_data[0] * 2, 0};
