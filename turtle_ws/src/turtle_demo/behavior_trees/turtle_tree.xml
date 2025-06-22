@@ -2,81 +2,21 @@
 <root BTCPP_format="4" main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <KeepRunningUntilFailure>
-      <Fallback>
-        <Sequence name="Target Within Range">
+      <Fallback name="Main Loop">
+        <Sequence name="Chase Nearby Target">
           <SubTree ID="Proximity Check" relative_pose="{relative_pose}"/>
           <ChaseTarget relative_pose="{relative_pose}" chase_velocity="{chase_velocity}"/>
           <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
         </Sequence>
         <Sequence>
+          <!-- Shouldn't the last known pose be unknown at the start? -->
           <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
           <ReactiveSequence>
             <GetCurrentPose reference_frame="world" target_frame="turtle2" pose="{chaser_pose}"/>
             <InputDataNode last_known_pose="{last_known_pose}" chaser_pose="{chaser_pose}" data="{data}"/>
             <DynamicSelector name="Target Out of Range" input_data="{data}" utility_threshold="-1000" utilities="{utils}">
-
-            <Sequence name="Scan Search">
-              <ReactiveSequence name="Look for Target">
-                <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
-                <ForceSuccessNode>
-                  <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{scan_velocity}"/>
-                </ForceSuccessNode>
-                <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{scan_velocity}"/>
-              </ReactiveSequence>
-              <ReactiveSequence name="Go to Last Known Pose">
-                <Inverter>
-                  <SubTree ID="Proximity Check" relative_pose="{relative_pose}"/>
-                </Inverter>
-                <ForceSuccessNode>
-                  <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
-                </ForceSuccessNode>
-                <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{chase_velocity}"/>
-              </ReactiveSequence>
-            </Sequence>
-
-              <!--Fallback name="Scan Search">
-                <Sequence name="Scan Search Successful">
-                  <ScanSearch target_pose="{relative_pose}" rotation_speed="1.0" scan_velocity="{scan_velocity}"/>
-                  <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
-                  <ReactiveSequence>
-                    <Inverter>
-                      <SubTree ID="Proximity Check"/>
-                    </Inverter>
-                    <ForceSuccessNode>
-                      <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
-                    </ForceSuccessNode>
-                    <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{chase_velocity}"/>
-                  </ReactiveSequence>
-                  <StopTurtle zero_velocity="{zero_velocity}"/>
-                  <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{zero_velocity}"/>
-                  <AlwaysFailureNode/>
-                </Sequence>
-                <SubTree ID="Proximity Check"/>
-                <Sequence name="Scan Search Failed">
-                  <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{scan_velocity}"/>
-                  <AlwaysFailureNode/>
-                </Sequence>
-              </Fallback-->
-
-              <Sequence name="Patrol Search">
-                <FindCorner corner_pose="{corner_pose}" radius="2.0" chaser_pose="{chaser_pose}"/>
-                <ReactiveSequence name="Approach Corner">
-                  <!-- Make this a subtree as well -->
-                  <ForceSuccessNode>
-                    <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
-                  </ForceSuccessNode>
-                  <GoToPoint target_pose="{corner_pose}" chaser_pose="{chaser_pose}" chase_velocity="{chase_velocity}"/>
-                </ReactiveSequence>
-                <ReactiveFallback name="Patrol Search Loop">
-                  <SubTree ID="Proximity Check" relative_pose="{relative_pose}"/>
-                  <Sequence>
-                    <ForceSuccessNode>
-                      <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
-                    </ForceSuccessNode>
-                    <PatrolSearch chaser_pose="{chaser_pose}" radius="2.0" chase_velocity="{chase_velocity}"/>
-                  </Sequence>
-                </ReactiveFallback>
-              </Sequence>
+              <SubTree ID="Scan Search" chaser_pose="{chaser_pose}"/>
+              <SubTree ID="Patrol Search" chaser_pose="{chaser_pose}"/>
             </DynamicSelector>
           </ReactiveSequence>
         </Sequence>
@@ -85,10 +25,49 @@
   </BehaviorTree>
 
   <BehaviorTree ID="Proximity Check">
+    <!--
+      Output Port: relative_pose
+    -->
     <Sequence>
       <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
       <TargetWithinRange target_pose="{relative_pose}" range="2.0"/>
     </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Scan Search">
+    <!--
+      Input Ports: chaser_pose
+    -->
+    <ReactiveFallback>
+      <SubTree ID="Proximity Check" relative_pose="{relative_pose}"/>
+      <ForceFailureNode>
+        <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{velocity}"/>
+      </ForceFailureNode>
+      <KeepRunningUntilFailure>
+        <Sequence>
+          <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
+          <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
+          <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
+        </Sequence>
+      </KeepRunningUntilFailure>
+    </ReactiveFallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Patrol Search">
+    <!--
+      Input Ports: chaser_pose
+    -->
+    <ReactiveFallback>
+      <SubTree ID="Proximity Check" relative_pose="{relative_pose}"/>
+      <ForceFailureNode>
+        <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{velocity}"/>
+      </ForceFailureNode>
+      <Sequence>
+        <FindCorner corner_pose="{corner_pose}" radius="2.0" chaser_pose="{chaser_pose}"/>
+        <GoToPoint target_pose="{corner_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
+        <PatrolSearch chaser_pose="{chaser_pose}" radius="2.0" chase_velocity="{velocity}"/>
+      </Sequence>
+    </ReactiveFallback>
   </BehaviorTree>
 
 </root>
