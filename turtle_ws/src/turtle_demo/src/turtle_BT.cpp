@@ -21,8 +21,6 @@ class TurtleInputNode : public InputDataNode {
     public:
         TurtleInputNode(const std::string& name, const NodeConfig& config) :
             InputDataNode(name, config) {
-                failed_attempts = 0;
-                chasing = true;
                 start_time = std::chrono::system_clock::now();
                 temp_pose = PoseStamped();
             }
@@ -53,27 +51,6 @@ class TurtleInputNode : public InputDataNode {
             if (!equal_pose(*last_known_pose, temp_pose)) {
                 start_time = std::chrono::system_clock::now();
                 temp_pose = *last_known_pose;
-            }
-
-
-            // Input 2: Number of failed attempts
-            // If chaser is chasing, add 1 when chaser reaches last known pose, then stop chasing
-            // If chaser is not at last known pose, begin chasing
-
-            // Instead of doing this, the search nodes should probably report their failure count
-            // Need to make scan search a stateful behavior
-            // Only track failed attempts for the behavior you're currently doing
-            // Failed scan attempt should be a 360 degree turn
-
-            float x_diff = last_known_pose->pose.position.x - chaser_pose->pose.position.x;
-            float y_diff = last_known_pose->pose.position.y - chaser_pose->pose.position.y;
-            float target_distance = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
-            if ((chasing == true) && (target_distance < 0.1)) {
-                chasing = false;
-                failed_attempts++;
-            }
-            else if (target_distance >= 0.1) {
-                chasing = true;
             }
 
             // Input 3: Current line of sight distance
@@ -111,7 +88,7 @@ class TurtleInputNode : public InputDataNode {
                 pow(chaser_pose->pose.position.y - 5.5, 2)
             );
 
-            return {time_diff.count(), failed_attempts, los_dist, target_center_distance, chaser_center_distance};
+            return {time_diff.count(), los_dist, target_center_distance, chaser_center_distance};
         }
 
         bool equal_pose(PoseStamped pose_1, PoseStamped pose_2) {
@@ -149,13 +126,18 @@ class TurtleInputNode : public InputDataNode {
 
 class TurtleDecisionModule : public DecisionModule {
     public:
-        TurtleDecisionModule() : DecisionModule(5, 2) {}
+        TurtleDecisionModule() : DecisionModule(4, 2) {}
         const std::vector<float> computeUtilities(const std::vector<float> input_data, const std::vector<int> fail_count) const override {
-            std::cout << "Failure count: (";
-            for (size_t i = 0; i < output_size_; i++) {
-                std::cout << fail_count[i] << ", ";
-            }
-            std::cout << ')' << std::endl;
+            // std::cout << "Failure count: (";
+            // for (size_t i = 0; i < output_size_; i++) {
+            //     std::cout << fail_count[i] << ", ";
+            // }
+            // std::cout << ')' << std::endl;
+
+            float time = input_data[0];
+            float los = input_data[1];
+            float target_disp = input_data[2];
+            float chaser_disp = input_data[3];
 
             // std::cout << "DM computeUtilities..." << std::endl;
             // Weights for scan search
@@ -170,12 +152,12 @@ class TurtleDecisionModule : public DecisionModule {
             float k_b_fail = 1;  // Failed attempts (-)
 
             std::vector<float> utils(output_size_);
-            utils[0] = -k_a0 * input_data[0] + k_a1 * input_data[1] + k_a2 * input_data[2] - k_a_fail * fail_count[0];
-            utils[1] = k_b0 * input_data[0] + k_b1 * input_data[3] - k_b_fail * fail_count[1];
+            utils[0] = -k_a0 * time + k_a1 * los + k_a2 * target_disp - k_a_fail * fail_count[0];
+            utils[1] = k_b0 * time + k_b1 * chaser_disp - k_b_fail * fail_count[1];
             // std::cout << "Utility components: " << k0 * input_data[0] << ' ' << k1 * input_data[1] << ' ' <<
             //     k2 * input_data[2] << ' ' << k3 * input_data[3] << std::endl;
 
-            std::cout << "Utilities: (" << std::to_string(utils[0]) << ", " << std::to_string(utils[1]) << ')' << std::endl;
+            // std::cout << "Utilities: (" << std::to_string(utils[0]) << ", " << std::to_string(utils[1]) << ')' << std::endl;
             return utils;
         }
 };
@@ -197,7 +179,6 @@ int main(int argc, char** argv) {
     factory.registerNodeType<turtle_behaviors::FindCorner>("FindCorner");
 
     // Register BTCPP behaviors
-    factory.registerNodeType<BT::SleepNode>("SleepNode");
     factory.registerNodeType<BT::ForceSuccessNode>("ForceSuccessNode");
     factory.registerNodeType<BT::ForceFailureNode>("ForceFailureNode");
     factory.registerNodeType<BT::AlwaysFailureNode>("AlwaysFailureNode");
@@ -207,13 +188,11 @@ int main(int argc, char** argv) {
     factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", turtle_dm);
     factory.registerNodeType<DS::TurtleInputNode>("InputDataNode");
 
-    
-
     auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_tree.xml");
     std::string xml_models = BT::writeTreeNodesModelXML(factory);
     
     std::cout << "Beginning behavior tree" << std::endl;
-    tree.tickWhileRunning(std::chrono::milliseconds(100));
+    tree.tickWhileRunning();
     rclcpp::shutdown();
     std::cout << "Concluded behavior tree" << std::endl;
   
