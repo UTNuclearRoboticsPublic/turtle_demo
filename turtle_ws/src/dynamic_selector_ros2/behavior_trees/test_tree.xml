@@ -3,7 +3,7 @@
         <KeepRunningUntilFailure>
             <ReactiveSequence>
                 <Sequence>
-                    <GetMessageFromTopic topic="input_1" type="std_msgs::msg::Float32" std_msgs::msg::Float32="{data1}" timeout="3"/>
+                    <GetMessageFromTopic topic="input_1" type="std_msgs::msg::Float64" std_msgs::msg::Float64="{data1}" timeout="3"/>
                     <GetMessageFromTopic topic="input_2" type="std_msgs::msg::Bool" std_msgs::msg::Bool="{data2}" timeout="3"/>
                 </Sequence>
                 <DataInputNode input_1="{data1}" input_2="{data2}" data="{data3}"/>

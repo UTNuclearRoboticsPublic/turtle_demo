@@ -109,11 +109,11 @@ NodeStatus PatrolSearch::onRunning() {
 
         // Move towards target point
         // Slow down near target to avoid overshoot
-        chase_velocity.linear.x = scale_forward_rate * std::min(target_dist + 0.1, 1.0);
+        chase_velocity.linear.x = scale_forward_rate * std::min(target_dist + 0.2, 1.0);
         chase_velocity.angular.z = scale_rotation_rate * diff_angle;
 
         // If target point is reached, switch to turn mode
-        std::cout << x_diff << ", " << y_diff << std::endl;
+        // std::cout << x_diff << ", " << y_diff << std::endl;
         if (target_dist < position_threshold) {
             current_sub_phase = TURN;
             if (current_phase == LONG) {

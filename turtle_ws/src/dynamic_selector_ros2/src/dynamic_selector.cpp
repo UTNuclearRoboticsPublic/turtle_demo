@@ -27,7 +27,9 @@ DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& conf
 	else
 		setRegistrationID("DynamicSelector");
 
-	//prev_utils_ = std::vector<float>();
+	//prev_utils_ = std::vector<double>();
+	last_util_ = 0;
+	last_child_ = nullptr;
 }
 
 // This method gets called whenever we tick this node
@@ -39,16 +41,18 @@ NodeStatus DynamicSelector::tick() {
 	if (fail_count_.size() == 0) fail_count_ = std::vector<int>(children_nodes_.size());
 
 	// Read input ports
-	std::vector<float> input_data;
+	std::vector<double> input_data;
 	auto input_data_expected = getInput("input_data", input_data);
-	float utility_threshold;
-	getInput("utility_threshold", utility_threshold);
-
-	// Verify ports have data
 	if (!input_data_expected.has_value()) {
 		throw std::runtime_error("DS: Missing required port \"input_data\" for DynamicSelector, aborting");
         return BT::NodeStatus::FAILURE;
     }
+
+	double utility_threshold;
+	getInput("utility_threshold", utility_threshold);
+
+	double stability_threshold;
+	getInput("stability_threshold", stability_threshold);
 
 	// children_nodes_ is a vector of TreeNodes
 	const size_t children_count = children_nodes_.size();
@@ -71,7 +75,7 @@ NodeStatus DynamicSelector::tick() {
 
 	// Get utility scores
 	// std::cout << "Getting utilities..." << std::endl;
-	const std::vector<float> utilities = decision_module_->getUtilities(input_data, fail_count_);
+	const std::vector<double> utilities = decision_module_->getUtilities(input_data, fail_count_);
 	// prev_utils_ = utilities;
 	// std::cout << "Got utilities." << std::endl;
 
@@ -82,9 +86,9 @@ NodeStatus DynamicSelector::tick() {
 	}
 
 	// Create pair vector of utilities and nodes
-	std::vector<std::pair<float, TreeNode*>> util_node_pairs;
+	std::vector<std::pair<double, TreeNode*>> util_node_pairs;
 	for (size_t i = 0; i < utilities.size(); i++) {
-		std::pair<float, TreeNode*> new_pair;
+		std::pair<double, TreeNode*> new_pair;
 		new_pair.first = utilities[i];
 		new_pair.second = children_nodes_[i];
 		util_node_pairs.push_back(new_pair);
@@ -100,21 +104,31 @@ NodeStatus DynamicSelector::tick() {
 		return NodeStatus::FAILURE;
 	}
 
-	// These are made local variables because SS doesn't directly care about previous ticks
+	double current_util = util_node_pairs[0].first;
+	TreeNode* current_child_node = util_node_pairs[0].second;
+
+	// Tick same node as last tick unless utility gain is greater than threshold
+	if ((last_child_ != current_child_node) && (last_child_ != nullptr) && (current_util < last_util_ + stability_threshold)) {
+		std::cout << "Enforcing stability" << std::endl;
+		current_util = last_util_;
+		current_child_node = last_child_;
+	}
+
+	// These are made local variables because DS doesn't directly care about previous ticks
 	// Utilities are continuously recalculated so previously tried children can be revisited
 	size_t current_child_idx = 0;
 	size_t skipped_count = 0;
-	// std::cout << "Ticking child" << std::endl;
 	while(current_child_idx < children_count) {
-		TreeNode* current_child_node = util_node_pairs[current_child_idx].second;
 
-		auto prev_status = current_child_node->status();
+		const NodeStatus prev_status = current_child_node->status();
 		const NodeStatus child_status = current_child_node->executeTick();
 
 		switch(child_status)
 		{
 			case NodeStatus::RUNNING: {
 				// If child is running, return running
+				last_child_ = current_child_node;
+				last_util_ = current_util;
 				return child_status;
 			}
 			case NodeStatus::SUCCESS: {
@@ -130,8 +144,10 @@ NodeStatus DynamicSelector::tick() {
 				fail_count_[original_idx]++;
 				std::cout << "Fail count: (" << fail_count_[0] << ", " << fail_count_[1] << ")" << std::endl;
 
-				// Return the execution flow if the child is async,
-				// to make this interruptable.
+				last_child_ = nullptr;
+				last_util_ = 0;
+
+				// Return the execution flow if the child is async, to make this interruptable.
 				// If this is an async node, check for interruptions after failure
 				if(asynch_ && requiresWakeUp() && prev_status == NodeStatus::IDLE &&
 					current_child_idx < children_count)
@@ -145,6 +161,8 @@ NodeStatus DynamicSelector::tick() {
 				// It was requested to skip this node
 				current_child_idx++;
 				skipped_count++;
+				current_util = util_node_pairs[current_child_idx].first;
+				current_child_node = util_node_pairs[current_child_idx].second;
 			}
 			break;
 			case NodeStatus::IDLE: {

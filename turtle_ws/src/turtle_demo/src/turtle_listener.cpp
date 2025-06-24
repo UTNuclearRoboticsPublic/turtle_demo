@@ -84,7 +84,7 @@ private:
       // Check if the service is ready
       if (spawner_->service_is_ready()) {
         // Initialize request with turtle name and coordinates
-        // Note that x, y and theta are defined as floats in turtlesim/srv/Spawn
+        // Note that x, y and theta are defined as doubles in turtlesim/srv/Spawn
         auto request = std::make_shared<turtlesim::srv::Spawn::Request>();
         request->x = 4.0;
         request->y = 2.0;

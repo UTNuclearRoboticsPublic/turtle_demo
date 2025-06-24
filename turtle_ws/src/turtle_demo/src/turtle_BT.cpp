@@ -28,12 +28,12 @@ class TurtleInputNode : public InputDataNode {
             return {
                 InputPort<PoseStamped::SharedPtr>("last_known_pose"),
                 InputPort<PoseStamped::SharedPtr>("chaser_pose"),
-                OutputPort<std::vector<float>>("data")
+                OutputPort<std::vector<double>>("data")
             };
         }
 
     private:
-        std::vector<float> getInputData() override {
+        std::vector<double> getInputData() override {
             PoseStamped::SharedPtr last_known_pose, chaser_pose;
             if (!getInput("last_known_pose", last_known_pose)) {
                 std::cout << "ERROR: No last known pose found." << std::endl;
@@ -45,7 +45,7 @@ class TurtleInputNode : public InputDataNode {
             };
 
             // Input 1: Time since last spotted
-            std::chrono::duration<float> time_diff = std::chrono::system_clock::now() - start_time;
+            std::chrono::duration<double> time_diff = std::chrono::system_clock::now() - start_time;
 
             // Reset timer when target is spotted (last known pose changes)
             if (!equal_pose(*last_known_pose, temp_pose)) {
@@ -55,18 +55,18 @@ class TurtleInputNode : public InputDataNode {
 
             // Input 3: Current line of sight distance
             // Compute current angle (Axis angle formula)
-            float chaser_angle;
-            float q_w = chaser_pose->pose.orientation.w;
-            float q_z = chaser_pose->pose.orientation.z;
+            double chaser_angle;
+            double q_w = chaser_pose->pose.orientation.w;
+            double q_z = chaser_pose->pose.orientation.z;
             if (q_z == 0) chaser_angle = 0;
             else chaser_angle = 2 * acos(q_w) * q_z / abs(q_z);
 
             // Iteratively step forward along the line of sight from the chase turtle,
             // stop when exceeding the boundary
-            float los_dist = 0;
-            float diff = 0.01;
-            float los_x = chaser_pose->pose.position.x;
-            float los_y = chaser_pose->pose.position.y;
+            double los_dist = 0;
+            double diff = 0.01;
+            double los_x = chaser_pose->pose.position.x;
+            double los_y = chaser_pose->pose.position.y;
             bool out_of_bounds = false;
 
             while (!out_of_bounds) {
@@ -77,13 +77,13 @@ class TurtleInputNode : public InputDataNode {
             }
 
             // Input 4: Distance from center to last known target position
-            float target_center_distance = sqrt(
+            double target_center_distance = sqrt(
                 pow(last_known_pose->pose.position.x - 5.5, 2) +
                 pow(last_known_pose->pose.position.y - 5.5, 2)
             );
 
             // Input 5: Distance from center to current chaser position
-            float chaser_center_distance = sqrt(
+            double chaser_center_distance = sqrt(
                 pow(chaser_pose->pose.position.x - 5.5, 2) +
                 pow(chaser_pose->pose.position.y - 5.5, 2)
             );
@@ -118,7 +118,7 @@ class TurtleInputNode : public InputDataNode {
 
             return true;
         }
-        float failed_attempts;
+        double failed_attempts;
         bool chasing;
         std::chrono::time_point<std::chrono::system_clock> start_time;
         PoseStamped temp_pose;
@@ -127,37 +127,45 @@ class TurtleInputNode : public InputDataNode {
 class TurtleDecisionModule : public DecisionModule {
     public:
         TurtleDecisionModule() : DecisionModule(4, 2) {}
-        const std::vector<float> computeUtilities(const std::vector<float> input_data, const std::vector<int> fail_count) const override {
+        const std::vector<double> computeUtilities(const std::vector<double> input_data, const std::vector<int> fail_count) const override {
             // std::cout << "Failure count: (";
             // for (size_t i = 0; i < output_size_; i++) {
             //     std::cout << fail_count[i] << ", ";
             // }
             // std::cout << ')' << std::endl;
 
-            float time = input_data[0];
-            float los = input_data[1];
-            float target_disp = input_data[2];
-            float chaser_disp = input_data[3];
+            double t_max = 10.0;  // Time greater than t_max won't affect utils
+
+            double time = std::min(input_data[0], t_max);
+            double los = input_data[1];
+            double target_disp = input_data[2];
+            double chaser_disp = input_data[3];
 
             // std::cout << "DM computeUtilities..." << std::endl;
             // Weights for scan search
-            float k_a0 = 0.01;  // Time (-)
-            float k_a1 = 1;  // Line of sight (+)
-            float k_a2 = 1;  // Target displacement (+)
-            float k_a_fail = 1;  // Failed attempts (-)
+            double k_time = 1.0 / t_max;  // Time (-)
+            double k_a1 = 1;  // Line of sight (+)
+            double k_a2 = 1;  // Target displacement (+)
+            double k_a_fail = 1;  // Failed attempts (-)
 
             // Weights for patrol search
-            float k_b0 = 0.01;  // Time (+)
-            float k_b1 = 1;  // Chaser displacement (+)
-            float k_b_fail = 1;  // Failed attempts (-)
+            double k_b1 = 1;  // Chaser displacement (+)
+            double k_b_fail = 1;  // Failed attempts (-)
 
-            std::vector<float> utils(output_size_);
-            utils[0] = -k_a0 * time + k_a1 * los + k_a2 * target_disp - k_a_fail * fail_count[0];
-            utils[1] = k_b0 * time + k_b1 * chaser_disp - k_b_fail * fail_count[1];
+            std::vector<double> utils(output_size_);
+            utils[0] = -k_time * time + k_a1 * los + k_a2 * target_disp - k_a_fail * fail_count[0];
+            utils[1] = k_time* time + k_b1 * chaser_disp - k_b_fail * fail_count[1];
+
+            // Limit utils between 0 and 1
+            for (size_t i; i < 2; i++) {
+                utils[i] = std::min(utils[i], 1.0);
+                utils[i] = std::max(utils[i], 0.0);
+            }
+
             // std::cout << "Utility components: " << k0 * input_data[0] << ' ' << k1 * input_data[1] << ' ' <<
             //     k2 * input_data[2] << ' ' << k3 * input_data[3] << std::endl;
 
-            // std::cout << "Utilities: (" << std::to_string(utils[0]) << ", " << std::to_string(utils[1]) << ')' << std::endl;
+            std::cout << "Utilities: (" << std::to_string(utils[0]) << ", " << std::to_string(utils[1]) << ')' << std::endl;
             return utils;
         }
 };
@@ -192,7 +200,7 @@ int main(int argc, char** argv) {
     std::string xml_models = BT::writeTreeNodesModelXML(factory);
     
     std::cout << "Beginning behavior tree" << std::endl;
-    tree.tickWhileRunning();
+    tree.tickWhileRunning(std::chrono::milliseconds(10));
     rclcpp::shutdown();
     std::cout << "Concluded behavior tree" << std::endl;
   

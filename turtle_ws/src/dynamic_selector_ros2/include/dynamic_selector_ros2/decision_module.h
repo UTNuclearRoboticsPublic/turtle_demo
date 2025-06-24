@@ -24,14 +24,14 @@ class DecisionModule {
     public:
         DecisionModule(size_t input_size, size_t output_size);
         virtual ~DecisionModule() = default;
-        const std::vector<float> getUtilities(const std::vector<float> input_data, const std::vector<int> fail_count) const;
+        const std::vector<double> getUtilities(const std::vector<double> input_data, const std::vector<int> fail_count) const;
 
     protected:
         size_t input_size_;
         size_t output_size_;
 
     private:
-        virtual const std::vector<float> computeUtilities(const std::vector<float> input_data, const std::vector<int> fail_count) const = 0;
+        virtual const std::vector<double> computeUtilities(const std::vector<double> input_data, const std::vector<int> fail_count) const = 0;
 };
 }
 

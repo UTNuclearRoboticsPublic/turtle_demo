@@ -5,7 +5,7 @@ InputDataNode::InputDataNode(const std::string& name, const BT::NodeConfig& conf
   : SyncActionNode(name, config) {};
 
 NodeStatus InputDataNode::tick() {
-  std::vector<float> input_data = getInputData();
+  std::vector<double> input_data = getInputData();
 
   if (input_data.size() == 0) {
     throw std::runtime_error("Missing input data");

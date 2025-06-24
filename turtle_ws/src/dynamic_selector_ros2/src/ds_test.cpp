@@ -1,5 +1,5 @@
 #include <behaviortree_cpp/bt_factory.h>
-#include <std_msgs/msg/float32.hpp>
+#include <std_msgs/msg/float64.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <nrg_utility_behaviors/get_message_from_topic.hpp>
 #include <behaviortree_cpp/loggers/groot2_publisher.h>
@@ -17,25 +17,25 @@ class TestInputNode : public SmartInputNode {
         // Need to figure out how to do this with an override
         static PortsList providedPorts() {
             return {
-                InputPort<std::shared_ptr<std_msgs::msg::Float32>>("input_1"),
+                InputPort<std::shared_ptr<std_msgs::msg::Float64>>("input_1"),
                 InputPort<std::shared_ptr<std_msgs::msg::Bool>>("input_2"),
-                OutputPort<std::vector<float>>("data")
+                OutputPort<std::vector<double>>("data")
             };
         }
         // PortsList inputPorts() override {
         //     return {
-        //         InputPort<std::shared_ptr<std_msgs::msg::Float32>>("input_1"),
+        //         InputPort<std::shared_ptr<std_msgs::msg::Float64>>("input_1"),
         //         InputPort<std::shared_ptr<std_msgs::msg::Bool>>("input_2")
         //     };
         // }
 	private:
-        std::vector<float> getInputData() override {
-            std::shared_ptr<std_msgs::msg::Float32> input_1;
+        std::vector<double> getInputData() override {
+            std::shared_ptr<std_msgs::msg::Float64> input_1;
             std::shared_ptr<std_msgs::msg::Bool> input_2;
             getInput("input_1", input_1);
             getInput("input_2", input_2);
 
-            std::vector<float> input_data = {input_1->data, static_cast<float>(input_2->data)};
+            std::vector<double> input_data = {input_1->data, static_cast<double>(input_2->data)};
             std::cout << std::endl << "Input values: " << input_data[0] << ' ' << input_data[1] << std::endl;
             return input_data;
         }
@@ -44,8 +44,8 @@ class TestInputNode : public SmartInputNode {
 class TestDecisionModule : public DecisionModule {
     public:
         TestDecisionModule() : DecisionModule(2, 2) {}
-        const std::vector<float> computeUtilities(const std::vector<float> input_data, const std::vector<int> fail_count) const override {
-            std::vector<float> utils;
+        const std::vector<double> computeUtilities(const std::vector<double> input_data, const std::vector<int> fail_count) const override {
+            std::vector<double> utils;
             if (input_data[1] == 0) {
                 utils = {input_data[0] * 2, 0};
             } else {

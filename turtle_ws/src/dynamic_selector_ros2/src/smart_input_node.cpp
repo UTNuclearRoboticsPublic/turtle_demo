@@ -5,7 +5,7 @@ SmartInputNode::SmartInputNode(const std::string& name, const BT::NodeConfig& co
   : SyncActionNode(name, config) {};
 
 NodeStatus SmartInputNode::tick() {
-  std::vector<float> input_data = getInputData();
+  std::vector<double> input_data = getInputData();
 
   if (input_data.size() == 0) {
     throw std::runtime_error("Missing input data");

@@ -38,7 +38,7 @@ public:
   // {
   //   PortsList ports = T::inputPorts();
   //   ports.insert(
-  //     OutputPort<std::vector<float>>("data", "Data to send to dynamic selector")
+  //     OutputPort<std::vector<double>>("data", "Data to send to dynamic selector")
   //   );
   //   return ports;
   // }
@@ -47,7 +47,7 @@ public:
 
 private:
   NodeStatus tick() final;
-  virtual std::vector<float> getInputData() = 0;
+  virtual std::vector<double> getInputData() = 0;
 };
 }  // DS
 

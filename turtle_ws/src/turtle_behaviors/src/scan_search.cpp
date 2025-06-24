@@ -78,7 +78,7 @@ NodeStatus ScanSearch::onRunning() {
     total_rotation += diff_angle;
     last_angle = chaser_angle;
 
-    std::cout << "Total Rotation: " << total_rotation<< "" << std::endl;
+    // std::cout << "Total Rotation: " << total_rotation<< "" << std::endl;
 
     // Target spotted if angle less than 15 degrees
     if (fabs(relative_angle) <= M_PI / 12) {
@@ -95,7 +95,7 @@ NodeStatus ScanSearch::onRunning() {
     }
 
     else {
-        std::cout << "Scan Search: Target not yet spotted" << std::endl;
+        //std::cout << "Scan Search: Target not yet spotted" << std::endl;
         scan_velocity.angular.z = rotation_speed;
         setOutput("scan_velocity", scan_velocity);
         return NodeStatus::RUNNING;

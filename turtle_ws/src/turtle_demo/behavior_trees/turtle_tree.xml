@@ -14,8 +14,9 @@
           <ReactiveSequence>
             <GetCurrentPose reference_frame="world" target_frame="turtle2" pose="{chaser_pose}"/>
             <InputDataNode last_known_pose="{last_known_pose}" chaser_pose="{chaser_pose}" data="{data}"/>
-            <DynamicSelector name="Target Out of Range" input_data="{data}" utility_threshold="-1000" utilities="{utils}">
+            <DynamicSelector name="Target Out of Range" input_data="{data}" utility_threshold="-1000" stability_threshold = "1" utilities="{utils}">
               <SubTree ID="Scan Search" chaser_pose="{chaser_pose}"/>
+              <!--AlwaysFailureNode/-->
               <SubTree ID="Patrol Search" chaser_pose="{chaser_pose}"/>
             </DynamicSelector>
           </ReactiveSequence>

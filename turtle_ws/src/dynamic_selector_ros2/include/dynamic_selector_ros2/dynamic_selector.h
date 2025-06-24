@@ -47,9 +47,10 @@ class DynamicSelector : public BT::ControlNode {
 
 		static PortsList providedPorts() {
 			return {
-				InputPort<std::vector<float>>("input_data", "Data from input node"),
-				InputPort<float>("utility_threshold", "Minimum utility for a child to be selected"),
-				OutputPort<std::vector<float>>("utilities", "Computed utility scores for each child")
+				InputPort<std::vector<double>>("input_data", "Data from input node"),
+				InputPort<double>("utility_threshold", "Minimum utility for a child to be selected"),
+				InputPort<double>("stability_threshold", "Minimum utility gain for the selector to tick a new child"),
+				OutputPort<std::vector<double>>("utilities", "Computed utility scores for each child")
 			};
 		}
 
@@ -58,8 +59,12 @@ class DynamicSelector : public BT::ControlNode {
 		// size_t skipped_count_ = 0;
 		bool asynch_ = false;
 		const DecisionModule* decision_module_;
-		// std::vector<float> prev_utils_;
+		// std::vector<double> prev_utils_;
 		std::vector<int> fail_count_;
+
+		// Remember last child ticked and its utility score
+		double last_util_;
+		TreeNode* last_child_;
 
 		virtual NodeStatus tick() override;
 };

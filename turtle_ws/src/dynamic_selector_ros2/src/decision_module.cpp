@@ -8,8 +8,8 @@ DecisionModule::DecisionModule(size_t input_size, size_t output_size) {
     output_size_ = output_size;
 }
 
-const std::vector<float> DecisionModule::getUtilities(
-    const std::vector<float> input_data, const std::vector<int> fail_count) const {
+const std::vector<double> DecisionModule::getUtilities(
+    const std::vector<double> input_data, const std::vector<int> fail_count) const {
 
     //std::cout << "DM getUtilities..." << std::endl;
     // Validate size of input data
@@ -24,7 +24,7 @@ const std::vector<float> DecisionModule::getUtilities(
         ", got " + std::to_string(fail_count.size()));
     }
 
-    const std::vector<float> utils = computeUtilities(input_data, fail_count);
+    const std::vector<double> utils = computeUtilities(input_data, fail_count);
     // std::cout << "DM computed utilities" << std::endl;
 
     // Validate size of utilities
