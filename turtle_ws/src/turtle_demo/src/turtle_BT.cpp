@@ -134,32 +134,37 @@ class TurtleDecisionModule : public DecisionModule {
             // }
             // std::cout << ')' << std::endl;
 
-            double t_max = 10.0;  // Time greater than t_max won't affect utils
+            const size_t full_size = input_size_ + output_size_;
 
-            double time = std::min(input_data[0], t_max);
-            double los = input_data[1];
-            double target_disp = input_data[2];
-            double chaser_disp = input_data[3];
+            double max_inputs[full_size] = {
+                30.0,    // Time
+                5.5,     // Line of Sight
+                5.5,     // Target Displacement
+                5.5,     // Chaser Displacement
+                5.0,     // Scan Search Fails
+                5.0      // Patrol Search Fails
+            }; 
 
-            // std::cout << "DM computeUtilities..." << std::endl;
-            // Weights for scan search
-            double k_time = 1.0 / t_max;  // Time (-)
-            double k_a1 = 1;  // Line of sight (+)
-            double k_a2 = 1;  // Target displacement (+)
-            double k_a_fail = 1;  // Failed attempts (-)
+            // Time, Line of Sight, Target Displacement, Chaser Displacement, Scan Search Fails, Patrol Search Fails
+            double relative_weights[output_size_][full_size] = {
+                {-0.25, 0.20, 0.30, 0.0, -0.25, 0.0},
+                { 0.25, 0.0,  0.0,  0.25, 0.0, -0.5}
+            };
 
-            // Weights for patrol search
-            double k_b1 = 1;  // Chaser displacement (+)
-            double k_b_fail = 1;  // Failed attempts (-)
+            double capped_inputs[full_size] ;
+            for (size_t i = 0; i < input_size_; i++) {
+                capped_inputs[i] = std::min(input_data[i], max_inputs[i]);
+            }
+            for (size_t i = input_size_; i < full_size; i++) {
+                capped_inputs[i] = std::min(static_cast<double>(fail_count[i - input_size_]), max_inputs[i]);
+            }
 
-            std::vector<double> utils(output_size_);
-            utils[0] = -k_time * time + k_a1 * los + k_a2 * target_disp - k_a_fail * fail_count[0];
-            utils[1] = k_time* time + k_b1 * chaser_disp - k_b_fail * fail_count[1];
-
-            // Limit utils between 0 and 1
-            for (size_t i; i < 2; i++) {
-                utils[i] = std::min(utils[i], 1.0);
-                utils[i] = std::max(utils[i], 0.0);
+            // Initialize utilities at 0.5
+            std::vector<double> utils(output_size_, 0.5);
+            for (size_t i = 0; i < full_size; i++) {
+                for (size_t j = 0; j < output_size_; j++) {
+                    utils[j] += capped_inputs[i] * relative_weights[j][i] / max_inputs[i];
+                }
             }
 
             // std::cout << "Utility components: " << k0 * input_data[0] << ' ' << k1 * input_data[1] << ' ' <<

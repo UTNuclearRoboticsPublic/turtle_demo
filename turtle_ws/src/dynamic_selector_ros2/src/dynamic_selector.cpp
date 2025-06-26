@@ -109,9 +109,12 @@ NodeStatus DynamicSelector::tick() {
 
 	// Tick same node as last tick unless utility gain is greater than threshold
 	if ((last_child_ != current_child_node) && (last_child_ != nullptr) && (current_util < last_util_ + stability_threshold)) {
-		std::cout << "Enforcing stability" << std::endl;
-		current_util = last_util_;
+		std::cout << "Enforcing stability: " << current_util << " < " << last_util_ << " + " << stability_threshold << std::endl;
 		current_child_node = last_child_;
+		// Find the current utility of the previous child node
+		for (auto iter = util_node_pairs.begin(); iter < util_node_pairs.end(); iter++) {
+			if (iter->second == current_child_node) current_util = iter->first;
+		}
 	}
 
 	// These are made local variables because DS doesn't directly care about previous ticks

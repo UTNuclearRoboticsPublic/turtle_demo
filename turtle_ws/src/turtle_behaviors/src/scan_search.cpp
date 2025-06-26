@@ -49,11 +49,11 @@ NodeStatus ScanSearch::onRunning() {
 
     geometry_msgs::msg::Twist scan_velocity;
 
-    // Get angle between chaser and target
-    double relative_angle = atan2(
-        relative_pose->pose.position.y,
-        relative_pose->pose.position.x
-    );
+    // Get distance and angle between chaser and target
+    double rel_x = relative_pose->pose.position.x;
+    double rel_y = relative_pose->pose.position.y;
+    double relative_dist = sqrt(pow(rel_x, 2) + pow(rel_y, 2));
+    double relative_angle = atan2(rel_y, rel_x);
 
     // Compute current angle (Axis angle formula)
     double chaser_angle;
@@ -80,8 +80,8 @@ NodeStatus ScanSearch::onRunning() {
 
     // std::cout << "Total Rotation: " << total_rotation<< "" << std::endl;
 
-    // Target spotted if angle less than 15 degrees
-    if (fabs(relative_angle) <= M_PI / 12) {
+    // Target spotted if angle less than 15 degrees and target within sight radius
+    if ((fabs(relative_angle) <= M_PI / 12) && (relative_dist <= 5.5)) {
         std::cout << "Scan Search: Target spotted" << std::endl;
         setOutput("scan_velocity", scan_velocity);  // Zero
         return NodeStatus::SUCCESS;
