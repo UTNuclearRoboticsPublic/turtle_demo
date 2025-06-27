@@ -57,9 +57,9 @@ NodeStatus PatrolSearch::onRunning() {
     double x_diff = target_point.first - chaser_pose->pose.position.x;
     double y_diff = target_point.second - chaser_pose->pose.position.y;
 
-    double scale_rotation_rate = 1;
+    double scale_rotation_rate = 2.0;
     double angle_threshold = 0.1;
-    double scale_forward_rate = 1;
+    double scale_forward_rate = 2.0;
     double position_threshold = 0.1;
 
     // Get angle difference between chaser and target

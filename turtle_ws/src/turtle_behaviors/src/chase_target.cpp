@@ -8,21 +8,23 @@ NodeStatus ChaseTarget::tick() {
         return NodeStatus::FAILURE;
     };
 
+    static const double scaleRotationRate = 1.25;
+    static const double scaleForwardSpeed = 1.0;
+    static const double max_speed = 1.25;
+
     geometry_msgs::msg::Twist chase_velocity;
 
-    static const double scaleRotationRate = 1.0;
-    chase_velocity.angular.z = scaleRotationRate * atan2(
-        relative_pose->pose.position.y,
-        relative_pose->pose.position.x
-    );
-
-    // Speed is proportional to distance
-    // Consider implementing a minimum speed
-    static const double scaleForwardSpeed = 0.5;
-    chase_velocity.linear.x = scaleForwardSpeed * sqrt(
+    double target_dist = sqrt(
         pow(relative_pose->pose.position.x, 2) +
         pow(relative_pose->pose.position.y, 2)
     );
+    double target_angle = atan2(
+        relative_pose->pose.position.y,
+        relative_pose->pose.position.x
+    );
+    
+    chase_velocity.linear.x = std::max(scaleForwardSpeed * target_dist, max_speed);
+    chase_velocity.angular.z = scaleRotationRate * target_angle;
 
     setOutput("chase_velocity", chase_velocity);
     return NodeStatus::SUCCESS;

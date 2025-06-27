@@ -13,7 +13,7 @@ NodeStatus ScanSearch::onStart() {
 
     geometry_msgs::msg::PoseStamped::SharedPtr chaser_pose;
     if (!getInput("chaser_pose", chaser_pose)) {
-        std::cout << "ERROR: No chaser pose found." << std::endl;
+        std::cout << "ERROR: No chaser_pose found." << std::endl;
         return NodeStatus::FAILURE;
     };
 
@@ -44,8 +44,6 @@ NodeStatus ScanSearch::onRunning() {
     getInput("relative_pose", relative_pose);
     getInput("chaser_pose", chaser_pose);
     getInput("rotation_speed", rotation_speed);
-
-    // Fail if full rotation is completed
 
     geometry_msgs::msg::Twist scan_velocity;
 

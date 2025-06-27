@@ -17,7 +17,7 @@
             <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
             <InputDataNode last_known_pose="{last_known_pose}" chaser_pose="{chaser_pose}" data="{data}"/>
             <DynamicSelector name="Target Out of Range" input_data="{data}" utility_threshold="0.1" stability_threshold = "0.1" utilities="{utils}">
-              <SubTree ID="Scan Search" chaser_pose="{chaser_pose}" relative_pose="{relative_pose}"/>
+              <SubTree ID="Scan Search" chaser_pose="{chaser_pose}" relative_pose="{relative_pose}" last_known_pose="{last_known_pose}"/>
               <!--AlwaysFailureNode/-->
               <SubTree ID="Patrol Search" chaser_pose="{chaser_pose}"/>
             </DynamicSelector>
@@ -45,7 +45,18 @@
       </ForceFailureNode>
       <KeepRunningUntilFailure>
         <Sequence>
-          <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
+          <Fallback>
+            <Sequence>
+              <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
+              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
+            </Sequence>
+            <Sequence>
+              <Inverter>
+                <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
+              </Inverter>
+              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="-1.0" scan_velocity="{velocity}"/>
+            </Sequence>
+          </Fallback>
           <StopTurtle zero_velocity="{velocity}"/>
           <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
           <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>

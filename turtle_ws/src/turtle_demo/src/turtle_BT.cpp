@@ -190,6 +190,7 @@ int main(int argc, char** argv) {
     factory.registerNodeType<turtle_behaviors::StopTurtle>("StopTurtle");
     factory.registerNodeType<turtle_behaviors::GoToPoint>("GoToPoint");
     factory.registerNodeType<turtle_behaviors::FindCorner>("FindCorner");
+    factory.registerNodeType<turtle_behaviors::RelativeAnglePositive>("RelativeAnglePositive");
 
     // Register BTCPP behaviors
     factory.registerNodeType<BT::ForceSuccessNode>("ForceSuccessNode");

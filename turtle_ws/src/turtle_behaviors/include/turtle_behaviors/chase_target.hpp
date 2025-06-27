@@ -2,6 +2,7 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include <iostream>
+#include <math.h>
 
 using BT::NodeConfig;
 using BT::NodeStatus;
