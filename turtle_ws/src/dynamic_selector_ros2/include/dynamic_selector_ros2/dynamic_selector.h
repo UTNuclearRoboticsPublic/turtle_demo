@@ -63,7 +63,6 @@ class DynamicSelector : public BT::ControlNode {
 		std::vector<int> fail_count_;
 
 		// Remember last child ticked and its utility score
-		double last_util_;
 		TreeNode* last_child_;
 
 		virtual NodeStatus tick() override;

@@ -28,7 +28,6 @@ DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& conf
 		setRegistrationID("DynamicSelector");
 
 	//prev_utils_ = std::vector<double>();
-	last_util_ = 0;
 	last_child_ = nullptr;
 }
 
@@ -76,7 +75,6 @@ NodeStatus DynamicSelector::tick() {
 	// Get utility scores
 	// std::cout << "Getting utilities..." << std::endl;
 	const std::vector<double> utilities = decision_module_->getUtilities(input_data, fail_count_);
-	// prev_utils_ = utilities;
 	// std::cout << "Got utilities." << std::endl;
 
 	// Check that utilities size matches number of children
@@ -107,9 +105,17 @@ NodeStatus DynamicSelector::tick() {
 	double current_util = util_node_pairs[0].first;
 	TreeNode* current_child_node = util_node_pairs[0].second;
 
+	// Get current utility of last node ticked
+	double last_util = 0;
+	if (last_child_ != nullptr) {
+		last_util = (std::find_if(util_node_pairs.begin(), util_node_pairs.end(), [this](const auto i) {
+			return (i.second == last_child_);
+		}))->first;
+	}
+
 	// Tick same node as last tick unless utility gain is greater than threshold
-	if ((last_child_ != current_child_node) && (last_child_ != nullptr) && (current_util < last_util_ + stability_threshold)) {
-		std::cout << "Enforcing stability: " << current_util << " < " << last_util_ << " + " << stability_threshold << std::endl;
+	if ((last_child_ != current_child_node) && (last_child_ != nullptr) && (current_util < last_util + stability_threshold)) {
+		std::cout << "Enforcing stability: " << current_util << " < " << last_util << " + " << stability_threshold << std::endl;
 		current_child_node = last_child_;
 		// Find the current utility of the previous child node
 		for (auto iter = util_node_pairs.begin(); iter < util_node_pairs.end(); iter++) {
@@ -131,7 +137,6 @@ NodeStatus DynamicSelector::tick() {
 			case NodeStatus::RUNNING: {
 				// If child is running, return running
 				last_child_ = current_child_node;
-				last_util_ = current_util;
 				return child_status;
 			}
 			case NodeStatus::SUCCESS: {
@@ -148,7 +153,6 @@ NodeStatus DynamicSelector::tick() {
 				std::cout << "Fail count: (" << fail_count_[0] << ", " << fail_count_[1] << ")" << std::endl;
 
 				last_child_ = nullptr;
-				last_util_ = 0;
 
 				// Return the execution flow if the child is async, to make this interruptable.
 				// If this is an async node, check for interruptions after failure
