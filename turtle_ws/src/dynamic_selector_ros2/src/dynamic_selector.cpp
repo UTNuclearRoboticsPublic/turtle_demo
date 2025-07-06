@@ -15,25 +15,15 @@
 #include <iostream>
 
 namespace DS {
-DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& config,
-	DecisionModule* decision_module, bool make_asynch)
-: ControlNode::ControlNode(name, config), decision_module_(decision_module), asynch_(make_asynch)
+DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& config, const std::vector<double> max_inputs, const std::vector<std::vector<double>> relative_weights)
+: ControlNode::ControlNode(name, config), max_inputs_(max_inputs), relative_weights_(relative_weights)
 {
-	// An async control node returns "running" after finishing a synchronous child
-	// This allows it to be interrupted even in between child ticks
-	// A non async control node with only synchronous children cannot be interrupted
-	if(asynch_)
-		setRegistrationID("AsyncDynamicSelector");
-	else
-		setRegistrationID("DynamicSelector");
-
-	//prev_utils_ = std::vector<double>();
+	setRegistrationID("DynamicSelector");
 	last_child_ = nullptr;
 }
 
 // This method gets called whenever we tick this node
 NodeStatus DynamicSelector::tick() {
-	// std::cout << "Ticking Dynamic Selector" << std::endl;
 
 	// Initialize fail_count_vector
 	// Needs to be done in tick() because child nodes aren't added yet in constructor
@@ -56,26 +46,10 @@ NodeStatus DynamicSelector::tick() {
 	// children_nodes_ is a vector of TreeNodes
 	const size_t children_count = children_nodes_.size();
 
-	// Concatenate previous utilities to input data if they exist
-	// if (prev_utils_.size() > 0) {
-	// 	input_data.insert(input_data.end(), prev_utils_.begin(), prev_utils_.end());
-	// } else {
-	// 	// Use 0 for previous utilities if there are none
-	// 	for (size_t i = 0; i < children_count; i++) input_data.push_back(0);
-	// }
-
 	setStatus(NodeStatus::RUNNING);
 
-	// Make sure there's a decision module
-	if (decision_module_ == nullptr) {
-		std::cout << "No linked decision module" << std::endl;
-		return NodeStatus::FAILURE;
-	}
-
 	// Get utility scores
-	// std::cout << "Getting utilities..." << std::endl;
-	const std::vector<double> utilities = decision_module_->getUtilities(input_data, fail_count_);
-	// std::cout << "Got utilities." << std::endl;
+	const std::vector<double> utilities = getUtilities(input_data, fail_count_, max_inputs_, relative_weights_);
 
 	// Check that utilities size matches number of children
 	if (utilities.size() != children_count) {
@@ -157,9 +131,8 @@ NodeStatus DynamicSelector::tick() {
 
 				last_child_ = nullptr;
 
-				// Return the execution flow if the child is async, to make this interruptable.
-				// If this is an async node, check for interruptions after failure
-				if(asynch_ && requiresWakeUp() && prev_status == NodeStatus::IDLE &&
+				// Check for interruptions after failure
+				if(requiresWakeUp() && prev_status == NodeStatus::IDLE &&
 					current_child_idx < children_count)
 				{
 					emitWakeUpSignal();
@@ -189,6 +162,40 @@ NodeStatus DynamicSelector::tick() {
 
 	// Skip if ALL the nodes have been skipped
 	return (skipped_count == children_count) ? NodeStatus::SKIPPED : NodeStatus::FAILURE;
+}
+
+const std::vector<double> DynamicSelector::getUtilities(
+	const std::vector<double> input_data,
+	const std::vector<int> fail_count,
+	const std::vector<double> max_inputs,
+	const std::vector<std::vector<double>> relative_weights
+	) const {
+
+	// Size of fail_count = number of output nodes
+	const size_t input_size = input_data.size();
+	const size_t output_size = fail_count.size();
+	const size_t full_size = input_size + output_size;
+
+	// Limit inputs to >= max_inputs
+	std::vector<double> capped_inputs(full_size);
+	for (size_t i = 0; i < input_size; i++) {
+			capped_inputs[i] = std::min(input_data[i], max_inputs[i]);
+		}
+		for (size_t i = input_data.size(); i < full_size; i++) {
+			capped_inputs[i] = std::min(static_cast<double>(fail_count[i - input_size]), max_inputs[i]);
+		}
+
+	// Initialize utilities at 0.5
+	std::vector<double> utils(output_size, 0.5);
+
+	// Utilities are a linear combination of capped inputs and relative weights
+	for (size_t i = 0; i < full_size; i++) {
+		for (size_t j = 0; j < output_size; j++) {
+			utils[j] += capped_inputs[i] * relative_weights[j][i] / max_inputs[i];
+		}
+	}
+
+	return utils;
 }
 
 void DynamicSelector::halt() {

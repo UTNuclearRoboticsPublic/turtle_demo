@@ -10,7 +10,6 @@
 #include <behaviortree_cpp/loggers/groot2_publisher.h>
 #include <dynamic_selector_ros2/dynamic_selector.h>
 #include <dynamic_selector_ros2/input_data_node.h>
-#include <dynamic_selector_ros2/decision_module.h>
 #include <chrono>
 #include <iostream>
 #include <fstream>
@@ -123,57 +122,6 @@ class TurtleInputNode : public InputDataNode {
         std::chrono::time_point<std::chrono::system_clock> start_time;
         PoseStamped temp_pose;
 };
-
-class TurtleDecisionModule : public DecisionModule {
-    public:
-        TurtleDecisionModule() : DecisionModule(4, 2) {}
-        const std::vector<double> computeUtilities(const std::vector<double> input_data, const std::vector<int> fail_count) const override {
-            // std::cout << "Failure count: (";
-            // for (size_t i = 0; i < output_size_; i++) {
-            //     std::cout << fail_count[i] << ", ";
-            // }
-            // std::cout << ')' << std::endl;
-
-            const size_t full_size = input_size_ + output_size_;
-
-            double max_inputs[full_size] = {
-                30.0,    // Time
-                5.5,     // Line of Sight
-                5.5,     // Target Displacement
-                5.5,     // Chaser Displacement
-                5.0,     // Scan Search Fails
-                5.0      // Patrol Search Fails
-            }; 
-
-            // Time, Line of Sight, Target Displacement, Chaser Displacement, Scan Search Fails, Patrol Search Fails
-            double relative_weights[output_size_][full_size] = {
-                {-0.25, 0.20, 0.30, 0.0, -0.25, 0.0},
-                { 0.25, 0.0,  0.0,  0.25, 0.0, -0.5}
-            };
-
-            double capped_inputs[full_size] ;
-            for (size_t i = 0; i < input_size_; i++) {
-                capped_inputs[i] = std::min(input_data[i], max_inputs[i]);
-            }
-            for (size_t i = input_size_; i < full_size; i++) {
-                capped_inputs[i] = std::min(static_cast<double>(fail_count[i - input_size_]), max_inputs[i]);
-            }
-
-            // Initialize utilities at 0.5
-            std::vector<double> utils(output_size_, 0.5);
-            for (size_t i = 0; i < full_size; i++) {
-                for (size_t j = 0; j < output_size_; j++) {
-                    utils[j] += capped_inputs[i] * relative_weights[j][i] / max_inputs[i];
-                }
-            }
-
-            // std::cout << "Utility components: " << k0 * input_data[0] << ' ' << k1 * input_data[1] << ' ' <<
-            //     k2 * input_data[2] << ' ' << k3 * input_data[3] << std::endl;
-
-            //std::cout << "Utilities: (" << std::to_string(utils[0]) << ", " << std::to_string(utils[1]) << ')' << std::endl;
-            return utils;
-        }
-};
 } // DS
 
 int main(int argc, char** argv) {
@@ -181,6 +129,20 @@ int main(int argc, char** argv) {
 
     BT::BehaviorTreeFactory factory;
     nrg_utility_behaviors::registerBehaviors(factory);
+
+    std::vector<double> max_inputs = {
+        30.0,    // Time
+        5.5,     // Line of Sight
+        5.5,     // Target Displacement
+        5.5,     // Chaser Displacement
+        5.0,     // Scan Search Fails
+        5.0      // Patrol Search Fails
+    };
+
+    std::vector<std::vector<double>> relative_weights = {
+        {-0.25, 0.20, 0.30, 0.0, -0.25, 0.0},
+        { 0.25, 0.0,  0.0,  0.25, 0.0, -0.5}
+    };
 
     // Register turtle behaviors
     factory.registerNodeType<turtle_behaviors::TargetWithinRange>("TargetWithinRange");
@@ -199,8 +161,7 @@ int main(int argc, char** argv) {
     factory.registerNodeType<BT::AlwaysFailureNode>("AlwaysFailureNode");
 
     // Register Dynamic Selector behaviors
-    DS::TurtleDecisionModule* turtle_dm = new DS::TurtleDecisionModule();
-    factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", turtle_dm);
+    factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", max_inputs, relative_weights);
     factory.registerNodeType<DS::TurtleInputNode>("InputDataNode");
 
     auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_tree.xml");

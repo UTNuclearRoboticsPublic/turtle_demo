@@ -19,7 +19,6 @@ include_directories(include)
 
 add_library(${PROJECT_NAME} SHARED
 src/input_data_node.cpp
-src/decision_module.cpp
 src/dynamic_selector.cpp
 )
 
@@ -39,16 +38,16 @@ install(
   INCLUDES DESTINATION include
 )
 
-add_executable(ds_test src/ds_test.cpp src/smart_input_node.cpp src/decision_module.cpp src/dynamic_selector.cpp)
-ament_target_dependencies(ds_test
-behaviortree_cpp
-std_msgs
-nrg_utility_behaviors
-)
+# add_executable(ds_test src/ds_test.cpp src/smart_input_node.cpp src/dynamic_selector.cpp)
+# ament_target_dependencies(ds_test
+# behaviortree_cpp
+# std_msgs
+# nrg_utility_behaviors
+# )
 
 # Install executable
-install(
-  TARGETS ds_test
-  DESTINATION lib/${PROJECT_NAME})
+# install(
+#   TARGETS ds_test
+#   DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

@@ -14,7 +14,6 @@
 #pragma once
 
 #include "behaviortree_cpp/control_node.h"
-#include "dynamic_selector_ros2/decision_module.h"
 
 #ifndef DYNAMIC_SELECTOR_H
 #define DYNAMIC_SELECTOR_H
@@ -38,8 +37,7 @@ namespace DS {
 class DynamicSelector : public BT::ControlNode {
 	public:
 		// For some reason, BTCPP doesn't like & for extra args
-		DynamicSelector(const std::string& name, const NodeConfig& config,
-			DecisionModule* decision_module, bool make_asynch = false);
+		DynamicSelector(const std::string& name, const NodeConfig& config, const std::vector<double> max_inputs, const std::vector<std::vector<double>> relative_weights);
 
 		virtual ~DynamicSelector() override = default;
 
@@ -55,17 +53,20 @@ class DynamicSelector : public BT::ControlNode {
 		}
 
 	private:
-		// size_t current_child_idx_;
-		// size_t skipped_count_ = 0;
-		bool asynch_ = false;
-		const DecisionModule* decision_module_;
-		// std::vector<double> prev_utils_;
+		const std::vector<double> max_inputs_;
+		const std::vector<std::vector<double>> relative_weights_;
 		std::vector<int> fail_count_;
 
 		// Remember last child ticked and its utility score
 		TreeNode* last_child_;
 
 		virtual NodeStatus tick() override;
+		virtual const std::vector<double> getUtilities(
+			const std::vector<double> input_data,
+			const std::vector<int> fail_count,
+			const std::vector<double> max_inputs,
+			const std::vector<std::vector<double>> relative_weights
+		) const;
 };
 }  // DS
 
