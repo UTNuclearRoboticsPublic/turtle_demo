@@ -83,6 +83,9 @@ NodeStatus DynamicSelector::tick() {
 		return NodeStatus::FAILURE;
 	}
 
+	// Write utils to output port
+	setOutput("utilities", utilities);
+
 	// Create pair vector of utilities and nodes
 	std::vector<std::pair<double, TreeNode*>> util_node_pairs;
 	for (size_t i = 0; i < utilities.size(); i++) {

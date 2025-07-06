@@ -170,7 +170,7 @@ class TurtleDecisionModule : public DecisionModule {
             // std::cout << "Utility components: " << k0 * input_data[0] << ' ' << k1 * input_data[1] << ' ' <<
             //     k2 * input_data[2] << ' ' << k3 * input_data[3] << std::endl;
 
-            std::cout << "Utilities: (" << std::to_string(utils[0]) << ", " << std::to_string(utils[1]) << ')' << std::endl;
+            //std::cout << "Utilities: (" << std::to_string(utils[0]) << ", " << std::to_string(utils[1]) << ')' << std::endl;
             return utils;
         }
 };
@@ -191,6 +191,7 @@ int main(int argc, char** argv) {
     factory.registerNodeType<turtle_behaviors::GoToPoint>("GoToPoint");
     factory.registerNodeType<turtle_behaviors::FindCorner>("FindCorner");
     factory.registerNodeType<turtle_behaviors::RelativeAnglePositive>("RelativeAnglePositive");
+    factory.registerNodeType<turtle_behaviors::VectorToMsg>("VectorToMsg");
 
     // Register BTCPP behaviors
     factory.registerNodeType<BT::ForceSuccessNode>("ForceSuccessNode");

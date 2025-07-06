@@ -6,3 +6,4 @@
 #include <turtle_behaviors/patrol_search.hpp>
 #include <turtle_behaviors/find_corner.hpp>
 #include <turtle_behaviors/relative_angle_positive.hpp>
+#include <turtle_behaviors/vector_to_msg.hpp>

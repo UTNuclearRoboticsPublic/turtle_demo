@@ -16,6 +16,14 @@
             <GetCurrentPose reference_frame="world" target_frame="turtle2" pose="{chaser_pose}"/>
             <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
             <InputDataNode last_known_pose="{last_known_pose}" chaser_pose="{chaser_pose}" data="{data}"/>
+            <ForceSuccessNode>
+              <Sequence>
+                <VectorToMsg vector="{data}" msg="{data_msg}"/>
+                <PublishMessageToTopic topic="/input_data" value="{data_msg}"/>
+                <VectorToMsg vector="{utils}" msg="{utils_msg}"/>
+                <PublishMessageToTopic topic="/utilities" value="{utils_msg}"/>
+              </Sequence>
+            </ForceSuccessNode>
             <DynamicSelector name="Target Out of Range" input_data="{data}" utility_threshold="0.1" stability_threshold = "0.1" utilities="{utils}">
               <SubTree ID="Scan Search" chaser_pose="{chaser_pose}" relative_pose="{relative_pose}" last_known_pose="{last_known_pose}"/>
               <!--AlwaysFailureNode/-->
