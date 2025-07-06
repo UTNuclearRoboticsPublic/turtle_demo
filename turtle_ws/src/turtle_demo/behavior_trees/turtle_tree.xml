@@ -3,12 +3,14 @@
   <BehaviorTree ID="MainTree">
     <KeepRunningUntilFailure>
       <Fallback name="Main Loop">
-        <Sequence name="Chase Nearby Target">
+        <ReactiveSequence name="Chase Nearby Target">
           <SubTree ID="Proximity Check"/>
           <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
+          <ForceSuccessNode>
+            <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
+          </ForceSuccessNode>
           <ChaseTarget relative_pose="{relative_pose}" chase_velocity="{chase_velocity}"/>
-          <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
-        </Sequence>
+        </ReactiveSequence>
         <Sequence>
           <!-- Shouldn't the last known pose be unknown at the start? -->
           <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>

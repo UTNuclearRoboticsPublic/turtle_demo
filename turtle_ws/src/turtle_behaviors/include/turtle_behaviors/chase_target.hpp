@@ -11,11 +11,11 @@ using BT::OutputPort;
 using BT::PortsList;
 
 namespace turtle_behaviors {
-class ChaseTarget : public BT::SyncActionNode
+class ChaseTarget : public BT::StatefulActionNode
 {
 public:
     ChaseTarget(const std::string& name, const NodeConfig& conf)
-        : BT::SyncActionNode(name, conf) {}
+        : BT::StatefulActionNode(name, conf) {}
 
     static PortsList providedPorts() {
         return {
@@ -24,6 +24,8 @@ public:
         };
     }
 
-    NodeStatus tick() override;
+    NodeStatus onStart() override;
+    NodeStatus onRunning() override;
+    void onHalted() override;
 };
 } // turtle_behaviors
