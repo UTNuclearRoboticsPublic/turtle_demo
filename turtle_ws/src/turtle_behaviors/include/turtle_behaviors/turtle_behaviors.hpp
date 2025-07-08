@@ -7,3 +7,4 @@
 #include <turtle_behaviors/find_corner.hpp>
 #include <turtle_behaviors/relative_angle_positive.hpp>
 #include <turtle_behaviors/vector_to_msg.hpp>
+#include <turtle_behaviors/consume_energy.hpp>

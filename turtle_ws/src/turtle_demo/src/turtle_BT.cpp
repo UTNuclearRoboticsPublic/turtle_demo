@@ -4,6 +4,7 @@
 #include <turtle_behaviors/turtle_behaviors.hpp>
 #include <behaviortree_cpp/actions/sleep_node.h>
 #include <behaviortree_cpp/actions/always_failure_node.h>
+#include <behaviortree_cpp/actions/set_blackboard_node.h>
 #include <behaviortree_cpp/decorators/force_success_node.h>
 #include <behaviortree_cpp/decorators/force_failure_node.h>
 #include <behaviortree_cpp/xml_parsing.h>
@@ -154,11 +155,13 @@ int main(int argc, char** argv) {
     factory.registerNodeType<turtle_behaviors::FindCorner>("FindCorner");
     factory.registerNodeType<turtle_behaviors::RelativeAnglePositive>("RelativeAnglePositive");
     factory.registerNodeType<turtle_behaviors::VectorToMsg>("VectorToMsg");
+    factory.registerNodeType<turtle_behaviors::ConsumeEnergy>("ConsumeEnergy");
 
     // Register BTCPP behaviors
     factory.registerNodeType<BT::ForceSuccessNode>("ForceSuccessNode");
     factory.registerNodeType<BT::ForceFailureNode>("ForceFailureNode");
     factory.registerNodeType<BT::AlwaysFailureNode>("AlwaysFailureNode");
+    factory.registerNodeType<BT::SetBlackboardNode>("SetBlackboardNode");
 
     // Register Dynamic Selector behaviors
     factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", max_inputs, relative_weights);
