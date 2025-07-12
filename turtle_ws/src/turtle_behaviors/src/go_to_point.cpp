@@ -15,6 +15,9 @@ NodeStatus GoToPoint::onStart() {
         return NodeStatus::FAILURE;
     };
 
+    // First rotate to target angle, then move forward
+    rotated = false;
+
     return NodeStatus::RUNNING;
 }
 
@@ -42,41 +45,44 @@ NodeStatus GoToPoint::onRunning() {
         return NodeStatus::SUCCESS;
     }
 
-    // Compute target angle
-    double target_angle = atan2(
-        y_diff, x_diff
-    );
+    if (!rotated) {
+        // Compute target angle
+        double target_angle = atan2(
+            y_diff, x_diff
+        );
 
-    // Compute current angle (Axis angle formula)
-    double chaser_angle;
-    double q_w = chaser_pose->pose.orientation.w;
-    double q_z = chaser_pose->pose.orientation.z;
-    if (q_z == 0) chaser_angle = 0;
-    else chaser_angle = 2 * acos(q_w) * q_z / fabs(q_z);  // Ranges from 0 to 2*pi
+        // Compute current angle (Axis angle formula)
+        double chaser_angle;
+        double q_w = chaser_pose->pose.orientation.w;
+        double q_z = chaser_pose->pose.orientation.z;
+        if (q_z == 0) chaser_angle = 0;
+        else chaser_angle = 2 * acos(q_w) * q_z / fabs(q_z);  // Ranges from 0 to 2*pi
 
-    // Get angle difference between chaser and target
-    double diff_angle  = target_angle - chaser_angle;
-    // If difference is >pi then direction is wrong
-    // Add or subtract 2pi to compensate
-    if (fabs(diff_angle) > M_PI) {
-        if (target_angle > 0) {
-            diff_angle = target_angle - chaser_angle - 2 * M_PI;
+        // Get angle difference between chaser and target
+        double diff_angle  = target_angle - chaser_angle;
+        // If difference is >pi then direction is wrong
+        // Add or subtract 2pi to compensate
+        if (fabs(diff_angle) > M_PI) {
+            if (target_angle > 0) {
+                diff_angle = target_angle - chaser_angle - 2 * M_PI;
+            }
+            else {
+                diff_angle = target_angle - chaser_angle + 2 * M_PI;
+            }
         }
-        else {
-            diff_angle = target_angle - chaser_angle + 2 * M_PI;
+
+        // Turn if angle difference is too great
+        // Use trig to see if the end point will be within goal distance of target
+        if ((target_dist * fabs(std::tan(diff_angle)) > dist_threshold)) {
+            chase_velocity.linear.x = 0;
+            chase_velocity.angular.z = scale_rotation_rate * std::max(fabs(diff_angle), max_turn) * diff_angle / fabs(diff_angle);
         }
+        // Remember when rotation is finished
+        else rotated = true;
     }
 
-    // Turn if angle difference is too great
-    // Use trig to see if the end point will be within goal distance of target
-    
-    if ((diff_angle > M_PI / 2) || (target_dist * fabs(std::tan(diff_angle)) > dist_threshold)) {
-        chase_velocity.linear.x = 0;
-        chase_velocity.angular.z = scale_rotation_rate * std::max(fabs(diff_angle), max_turn) * diff_angle / fabs(diff_angle);
-    }
-
-    // Go forward if angle is good
-    else {
+    // Go forward after finishing rotation
+    if (rotated) {
         chase_velocity.linear.x = scale_forward_rate;
         chase_velocity.angular.z = 0;
     }

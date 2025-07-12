@@ -28,5 +28,8 @@ public:
     NodeStatus onStart() override;
     NodeStatus onRunning() override;
     void onHalted() override;
+
+private:
+    bool rotated;
 };
 } // turtle_behaviors

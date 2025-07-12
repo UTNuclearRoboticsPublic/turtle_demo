@@ -28,6 +28,7 @@ class TurtleInputNode : public InputDataNode {
             return {
                 InputPort<PoseStamped::SharedPtr>("last_known_pose"),
                 InputPort<PoseStamped::SharedPtr>("chaser_pose"),
+                InputPort<double>("energy"),
                 OutputPort<std::vector<double>>("data")
             };
         }
@@ -43,6 +44,11 @@ class TurtleInputNode : public InputDataNode {
                 std::cout << "ERROR: No chaser pose found." << std::endl;
                 return {};
             };
+            double energy;
+            if (!getInput("energy", energy)) {
+                std::cout << "ERROR: No energy found." << std::endl;
+                return {};
+            };
 
             // Input 1: Time since last spotted
             std::chrono::duration<double> time_diff = std::chrono::system_clock::now() - start_time;
@@ -53,7 +59,7 @@ class TurtleInputNode : public InputDataNode {
                 temp_pose = *last_known_pose;
             }
 
-            // Input 3: Current line of sight distance
+            // Input 2: Current line of sight distance
             // Compute current angle (Axis angle formula)
             double chaser_angle;
             double q_w = chaser_pose->pose.orientation.w;
@@ -76,19 +82,21 @@ class TurtleInputNode : public InputDataNode {
                 if ((los_x < 0) || (los_x > 11) || (los_y < 0) || (los_y > 11)) out_of_bounds = true;
             }
 
-            // Input 4: Distance from center to last known target position
+            // Input 3: Distance from center to last known target position
             double target_center_distance = sqrt(
                 pow(last_known_pose->pose.position.x - 5.5, 2) +
                 pow(last_known_pose->pose.position.y - 5.5, 2)
             );
 
-            // Input 5: Distance from center to current chaser position
+            // Input 4: Distance from center to current chaser position
             double chaser_center_distance = sqrt(
                 pow(chaser_pose->pose.position.x - 5.5, 2) +
                 pow(chaser_pose->pose.position.y - 5.5, 2)
             );
 
-            return {time_diff.count(), los_dist, target_center_distance, chaser_center_distance};
+            // Input 5: Energy
+
+            return {time_diff.count(), los_dist, target_center_distance, chaser_center_distance, energy};
         }
 
         bool equal_pose(PoseStamped pose_1, PoseStamped pose_2) {
@@ -131,31 +139,24 @@ int main(int argc, char** argv) {
     BT::BehaviorTreeFactory factory;
     nrg_utility_behaviors::registerBehaviors(factory);
 
+    // Define max inputs and weights
     std::vector<double> max_inputs = {
-        30.0,    // Time
+        30.0,    // Time Since Last Spotted
         5.5,     // Line of Sight
         5.5,     // Target Displacement
         5.5,     // Chaser Displacement
+        100.0,   // Energy
         5.0,     // Scan Search Fails
         5.0      // Patrol Search Fails
     };
-
     std::vector<std::vector<double>> relative_weights = {
-        {-0.25, 0.20, 0.30, 0.0, -0.25, 0.0},
-        { 0.25, 0.0,  0.0,  0.25, 0.0, -0.5}
+        {-0.25, 0.2,  0.2,  0.0,  0.1, -0.25, 0.0},
+        { 0.2,  0.0,  0.0,  0.2,  0.1,  0.0, -0.5},
+        { 0.0,  0.0,  0.0,  0.0, -1.0,  0.0,  0.0}
     };
 
     // Register turtle behaviors
-    factory.registerNodeType<turtle_behaviors::TargetWithinRange>("TargetWithinRange");
-    factory.registerNodeType<turtle_behaviors::ChaseTarget>("ChaseTarget");
-    factory.registerNodeType<turtle_behaviors::ScanSearch>("ScanSearch");
-    factory.registerNodeType<turtle_behaviors::PatrolSearch>("PatrolSearch");
-    factory.registerNodeType<turtle_behaviors::StopTurtle>("StopTurtle");
-    factory.registerNodeType<turtle_behaviors::GoToPoint>("GoToPoint");
-    factory.registerNodeType<turtle_behaviors::FindCorner>("FindCorner");
-    factory.registerNodeType<turtle_behaviors::RelativeAnglePositive>("RelativeAnglePositive");
-    factory.registerNodeType<turtle_behaviors::VectorToMsg>("VectorToMsg");
-    factory.registerNodeType<turtle_behaviors::ConsumeEnergy>("ConsumeEnergy");
+    registerTurtleBehaviors(factory);
 
     // Register BTCPP behaviors
     factory.registerNodeType<BT::ForceSuccessNode>("ForceSuccessNode");
@@ -164,7 +165,7 @@ int main(int argc, char** argv) {
     factory.registerNodeType<BT::SetBlackboardNode>("SetBlackboardNode");
 
     // Register Dynamic Selector behaviors
-    factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", max_inputs, relative_weights);
+    factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", max_inputs, relative_weights, base_utilities);
     factory.registerNodeType<DS::TurtleInputNode>("InputDataNode");
 
     auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_tree.xml");
