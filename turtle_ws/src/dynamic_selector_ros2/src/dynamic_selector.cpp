@@ -15,8 +15,9 @@
 #include <iostream>
 
 namespace DS {
-DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& config, const std::vector<double> max_inputs, const std::vector<std::vector<double>> relative_weights)
-: ControlNode::ControlNode(name, config), max_inputs_(max_inputs), relative_weights_(relative_weights)
+DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& config, const std::vector<double> max_inputs, 
+	const std::vector<std::vector<double>> weights)
+: ControlNode::ControlNode(name, config), max_inputs_(max_inputs), weights_(weights)
 {
 	setRegistrationID("DynamicSelector");
 	last_child_ = nullptr;
@@ -33,9 +34,11 @@ NodeStatus DynamicSelector::tick() {
 	std::vector<double> input_data;
 	auto input_data_expected = getInput("input_data", input_data);
 	if (!input_data_expected.has_value()) {
-		throw std::runtime_error("DS: Missing required port \"input_data\" for DynamicSelector, aborting");
+		throw std::runtime_error("DS: Missing required port 'input_data' for DynamicSelector, aborting");
         return BT::NodeStatus::FAILURE;
     }
+
+	// Verify that all inputs are positive
 
 	double utility_threshold;
 	getInput("utility_threshold", utility_threshold);
@@ -49,7 +52,7 @@ NodeStatus DynamicSelector::tick() {
 	setStatus(NodeStatus::RUNNING);
 
 	// Get utility scores
-	const std::vector<double> utilities = getUtilities(input_data, fail_count_, max_inputs_, relative_weights_);
+	const std::vector<double> utilities = getUtilities(input_data, fail_count_, max_inputs_, weights_);
 
 	// Check that utilities size matches number of children
 	if (utilities.size() != children_count) {
@@ -168,7 +171,7 @@ const std::vector<double> DynamicSelector::getUtilities(
 	const std::vector<double> input_data,
 	const std::vector<int> fail_count,
 	const std::vector<double> max_inputs,
-	const std::vector<std::vector<double>> relative_weights
+	const std::vector<std::vector<double>> weights
 	) const {
 
 	// Size of fail_count = number of output nodes
@@ -176,7 +179,7 @@ const std::vector<double> DynamicSelector::getUtilities(
 	const size_t output_size = fail_count.size();
 	const size_t full_size = input_size + output_size;
 
-	// Limit inputs to >= max_inputs
+	// Combine inputs and fails into one vector, limit values to <= max_inputs
 	std::vector<double> capped_inputs(full_size);
 	for (size_t i = 0; i < input_size; i++) {
 			capped_inputs[i] = std::min(input_data[i], max_inputs[i]);
@@ -185,13 +188,28 @@ const std::vector<double> DynamicSelector::getUtilities(
 			capped_inputs[i] = std::min(static_cast<double>(fail_count[i - input_size]), max_inputs[i]);
 		}
 
-	// Initialize utilities at 0.5
-	std::vector<double> utils(output_size, 0.5);
+	// Sum of weights is used to calculate base utility values
+	std::vector<double> sum_weights(output_size, 0);
+	// Absolute sum is used to normalize weights to each other
+	std::vector<double> abs_sum_weights(output_size, 0);
 
-	// Utilities are a linear combination of capped inputs and relative weights
-	for (size_t i = 0; i < full_size; i++) {
-		for (size_t j = 0; j < output_size; j++) {
-			utils[j] += capped_inputs[i] * relative_weights[j][i] / max_inputs[i];
+	for (size_t i = 0; i < output_size; i++) {
+		for (size_t j = 0; j < full_size; j++) {
+			sum_weights[i] += weights[i][j];
+			abs_sum_weights[i] += std::fabs(weights[i][j]);
+		}
+	}
+
+	// Set utilities at base values
+	std::vector<double> utils(output_size);
+	for (size_t i = 0; i < output_size; i++) {
+		utils[i] = std::fabs((sum_weights[i] - 1) / 2);
+	}
+
+	// Utilities are a linear combination of normalized inputs and normalized weights
+	for (size_t i = 0; i < output_size; i++) {
+		for (size_t j = 0; j < full_size; j++) {
+			utils[i] += (capped_inputs[j] / max_inputs[j]) * (weights[i][j] / abs_sum_weights[i]);
 		}
 	}
 

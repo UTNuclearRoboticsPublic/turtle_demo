@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
         5.0,     // Scan Search Fails
         5.0      // Patrol Search Fails
     };
-    std::vector<std::vector<double>> relative_weights = {
+    std::vector<std::vector<double>> weights = {
         {-0.25, 0.2,  0.2,  0.0,  0.1, -0.25, 0.0},
         { 0.2,  0.0,  0.0,  0.2,  0.1,  0.0, -0.5},
         { 0.0,  0.0,  0.0,  0.0, -1.0,  0.0,  0.0}
@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
     factory.registerNodeType<BT::SetBlackboardNode>("SetBlackboardNode");
 
     // Register Dynamic Selector behaviors
-    factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", max_inputs, relative_weights, base_utilities);
+    factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", max_inputs, weights);
     factory.registerNodeType<DS::TurtleInputNode>("InputDataNode");
 
     auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_tree.xml");

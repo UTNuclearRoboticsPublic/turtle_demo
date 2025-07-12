@@ -15,7 +15,7 @@
                   <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
                 </ForceSuccessNode>
               </Sequence>
-              <RechargeEnergy max_energy="100" energy_per_tick = "0.1" energy="{energy}"/>
+              <RechargeEnergy max_energy="100" energy_per_tick = "0.1" energy="{turtle2_energy}"/>
             </Fallback>
             <ChaseTarget relative_pose="{relative_pose}" chase_velocity="{chase_velocity}"/>
           </ReactiveSequence>

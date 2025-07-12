@@ -37,7 +37,8 @@ namespace DS {
 class DynamicSelector : public BT::ControlNode {
 	public:
 		// For some reason, BTCPP doesn't like & for extra args
-		DynamicSelector(const std::string& name, const NodeConfig& config, const std::vector<double> max_inputs, const std::vector<std::vector<double>> relative_weights);
+		DynamicSelector(const std::string& name, const NodeConfig& config, const std::vector<double> max_inputs,
+			const std::vector<std::vector<double>> weights);
 
 		virtual ~DynamicSelector() override = default;
 
@@ -54,7 +55,7 @@ class DynamicSelector : public BT::ControlNode {
 
 	private:
 		const std::vector<double> max_inputs_;
-		const std::vector<std::vector<double>> relative_weights_;
+		const std::vector<std::vector<double>> weights_;
 		std::vector<int> fail_count_;
 
 		// Remember last child ticked and its utility score
@@ -65,7 +66,7 @@ class DynamicSelector : public BT::ControlNode {
 			const std::vector<double> input_data,
 			const std::vector<int> fail_count,
 			const std::vector<double> max_inputs,
-			const std::vector<std::vector<double>> relative_weights
+			const std::vector<std::vector<double>> weights
 		) const;
 };
 }  // DS
