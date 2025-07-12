@@ -22,7 +22,8 @@ public:
     }
 
     NodeStatus tick() override {
-      static const double energy_cost_factor = 0.1;
+      static const double speed_cost_factor = 0.1;
+      static const double rot_cost_factor = 0.05;
 
       geometry_msgs::msg::Twist velocity;
       if (!getInput("velocity", velocity)) {
@@ -36,20 +37,24 @@ public:
           return NodeStatus::FAILURE;
       };
 
-      double velocity_norm = sqrt(
+      double speed = sqrt(
         pow(velocity.linear.x, 2) +
         pow(velocity.linear.y, 2) +
         pow(velocity.linear.z, 2)
       );
 
-      double new_energy = std::max(energy - velocity_norm * energy_cost_factor, 0.0);
-      std::cout << "Discharging, New Energy: " << new_energy << std::endl;
+      double new_energy = energy - speed * speed_cost_factor - velocity.angular.z * rot_cost_factor;
 
-      setOutput("energy", new_energy);
-
-      // Fail if energy == 0
-      if (new_energy == 0) return NodeStatus::FAILURE;
-      else return NodeStatus::SUCCESS;
+      if (new_energy > 0) {
+        std::cout << "Discharging, New Energy: " << new_energy << std::endl;
+        setOutput("energy", new_energy);
+        return NodeStatus::SUCCESS;
+      }
+      else {
+        std::cout << "WARNING: Out of Energy" << std::endl;
+        setOutput("energy", 0.0);
+        return NodeStatus::FAILURE;
+      }
     }
 };
 } // turtle_behaviors

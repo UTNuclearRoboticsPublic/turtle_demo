@@ -3,25 +3,21 @@
   <BehaviorTree ID="MainTree">
     <Sequence>
       <SetBlackboardNode value="100" output_key="turtle2_energy"/>
+      <GetCurrentPose reference_frame="world" target_frame="world" pose="{last_known_pose}"/>
       <KeepRunningUntilFailure>
         <Fallback name="Main Loop">
           <ReactiveSequence name="Chase Nearby Target">
             <SubTree ID="Proximity Check"/>
+            <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
             <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
             <Fallback>
-              <Sequence>
-                <ConsumeEnergy velocity="{chase_velocity}" energy="{turtle2_energy}"/>
-                <ForceSuccessNode>
-                  <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{chase_velocity}"/>
-                </ForceSuccessNode>
-              </Sequence>
-              <RechargeEnergy max_energy="100" energy_per_tick = "0.1" energy="{turtle2_energy}"/>
+              <SubTree ID="Move Turtle" velocity="{chase_velocity}" energy="{turtle2_energy}"/>
+              <RechargeEnergy max_energy="100" energy_per_tick = "0.5" energy="{turtle2_energy}"/>
             </Fallback>
             <ChaseTarget relative_pose="{relative_pose}" chase_velocity="{chase_velocity}"/>
           </ReactiveSequence>
           <Sequence>
             <!-- Shouldn't the last known pose be unknown at the start? -->
-            <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
             <ReactiveSequence>
               <GetCurrentPose reference_frame="world" target_frame="turtle2" pose="{chaser_pose}"/>
               <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
@@ -53,31 +49,47 @@
     </Sequence>
   </BehaviorTree>
 
+  <BehaviorTree ID="Move Turtle">
+    <!--
+    Bidirectional ports: velocity, energy
+    -->
+    <Fallback>
+      <Sequence>
+        <ConsumeEnergy velocity="{velocity}" energy="{energy}"/>
+        <ForceSuccessNode>
+          <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{velocity}"/>
+        </ForceSuccessNode>
+      </Sequence>
+      <Sequence>
+        <StopTurtle zero_velocity="{velocity}"/>
+        <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{velocity}"/>
+        <AlwaysFailureNode/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
   <BehaviorTree ID="Scan Search">
     <!--
-      Input Port: chaser_pose, relative_pose, last_known_pose
-      Bidirectional Port: energy
+    Input Ports: chaser_pose, relative_pose, 
+    Bidirectional Ports: last_known_pose, energy
     -->
     <ReactiveFallback>
       <SubTree ID="Proximity Check"/>
       <ForceFailureNode>
-        <Sequence>
-          <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{velocity}"/>
-          <ConsumeEnergy velocity="{velocity}" energy="{energy}"/>
-        </Sequence>
+        <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
       </ForceFailureNode>
       <KeepRunningUntilFailure>
         <Sequence>
           <Fallback>
             <Sequence>
               <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
-              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
+              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="-1.0" scan_velocity="{velocity}"/>
             </Sequence>
             <Sequence>
               <Inverter>
                 <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
               </Inverter>
-              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="-1.0" scan_velocity="{velocity}"/>
+              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
             </Sequence>
           </Fallback>
           <StopTurtle zero_velocity="{velocity}"/>
@@ -90,16 +102,13 @@
 
   <BehaviorTree ID="Patrol Search">
     <!--
-      Input Port: chaser_pose
-      Bidirectional Port: energy
+    Input Port: chaser_pose
+    Bidirectional Port: energy
     -->
     <ReactiveFallback>
       <SubTree ID="Proximity Check"/>
       <ForceFailureNode>
-        <Sequence>
-          <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{velocity}"/>
-          <ConsumeEnergy velocity="{velocity}" energy="{energy}"/>
-        </Sequence>
+        <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
       </ForceFailureNode>
       <Sequence>
         <FindCorner corner_pose="{corner_pose}" radius="2.0" chaser_pose="{chaser_pose}"/>
@@ -112,18 +121,18 @@
 
   <BehaviorTree ID="Rest">
     <!--
-      Bidirectional Port: energy
+    Bidirectional Port: energy
     -->
     <ReactiveFallback>
       <SubTree ID="Proximity Check"/>
       <ForceFailureNode>
         <Sequence>
           <StopTurtle zero_velocity="{velocity}"/>
-          <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{velocity}"/>
+          <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
         </Sequence>
       </ForceFailureNode>
       <KeepRunningUntilFailure>
-        <RechargeEnergy max_energy="100" energy_per_tick = "0.1" energy="{energy}"/>
+        <RechargeEnergy max_energy="100" energy_per_tick = "0.5" energy="{energy}"/>
       </KeepRunningUntilFailure>
     </ReactiveFallback>
   </BehaviorTree>
