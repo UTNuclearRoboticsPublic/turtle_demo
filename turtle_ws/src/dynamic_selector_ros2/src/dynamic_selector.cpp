@@ -26,50 +26,72 @@ DynamicSelector::DynamicSelector(const std::string& name, const NodeConfig& conf
 // This method gets called whenever we tick this node
 NodeStatus DynamicSelector::tick() {
 
-	// Initialize fail_count_vector
-	// Needs to be done in tick() because child nodes aren't added yet in constructor
-	if (fail_count_.size() == 0) fail_count_ = std::vector<int>(children_nodes_.size());
+	setStatus(NodeStatus::RUNNING);
 
 	// Read input ports
 	std::vector<double> input_data;
-	auto input_data_expected = getInput("input_data", input_data);
-	if (!input_data_expected.has_value()) {
-		throw std::runtime_error("DS: Missing required port 'input_data' for DynamicSelector, aborting");
-        return BT::NodeStatus::FAILURE;
-    }
-
-	// Verify that all inputs are positive
+	if (!getInput("input_data", input_data)) {
+		std::cout << "[DynamicSelector] ERROR: No input_data found" << std::endl;
+		return NodeStatus::FAILURE;
+	};
 
 	double utility_threshold;
-	getInput("utility_threshold", utility_threshold);
+	if (!getInput("utility_threshold", utility_threshold)) {
+		std::cout << "[DynamicSelector] ERROR: No utility_threshold found" << std::endl;
+		return NodeStatus::FAILURE;
+	};
 
 	double stability_threshold;
-	getInput("stability_threshold", stability_threshold);
+	if (!getInput("stability_threshold", stability_threshold)) {
+		std::cout << "[DynamicSelector] ERROR: No stability_threshold found" << std::endl;
+		return NodeStatus::FAILURE;
+	};
 
 	// children_nodes_ is a vector of TreeNodes
 	const size_t children_count = children_nodes_.size();
 
-	setStatus(NodeStatus::RUNNING);
+	// Initialize fail_count_vector if it hasn't been
+	// Needs to be done in tick() because children_nodes_ is populated after constructor
+	if (fail_count_.size() == 0) fail_count_ = std::vector<int>(children_count);
+
+	// Validate inputs, signs should match those of max_inputs
+	for (size_t i = 0; i < input_data.size(); i++) {
+		if (input_data[i] / max_inputs_[i] < 0) {
+			std::cout << "[DynamicSelector] ERROR: Signs of inputs and max_inputs must match" << std::endl;
+			return NodeStatus::FAILURE;
+		}
+	}
+
+	// Weights should be MxN where M is number of children, N is number of inputs
+	if ((weights_.size() != children_count) || weights_[0].size() != children_count + input_data.size()) {
+		std::cout << "[DynamicSelector] ERROR: Incorrect dimension of weights matrix" << std::endl;
+		return NodeStatus::FAILURE;
+	}
 
 	// Get utility scores
 	const std::vector<double> utilities = getUtilities(input_data, fail_count_, max_inputs_, weights_);
 
-	// Check that utilities size matches number of children
+	// Validate utilities, size should match number of children
 	if (utilities.size() != children_count) {
-		throw std::runtime_error("DS: Number of utility values and number of child nodes don't match");
+		std::cout << "[DynamicSelector] ERROR: Number of utility values and number of child nodes don't match" << std::endl;
 		return NodeStatus::FAILURE;
+	}
+
+	// Utilities should be between 0 and 1
+	for (size_t i = 0; i < utilities.size(); i++) {
+		if ((utilities[i] < 0) || (utilities[i] > 1)) {
+			std::cout << "[DynamicSelector] ERROR: Utility value of node " << i << " is " << utilities[i] << ", falls outside of range [0, 1]" << std::endl;
+			return NodeStatus::FAILURE;
+		}
 	}
 
 	// Write utils to output port
 	setOutput("utilities", utilities);
 
 	// Create pair vector of utilities and nodes
-	std::vector<std::pair<double, TreeNode*>> util_node_pairs;
+	std::vector<std::pair<double, TreeNode*>> util_node_pairs(children_count);
 	for (size_t i = 0; i < utilities.size(); i++) {
-		std::pair<double, TreeNode*> new_pair;
-		new_pair.first = utilities[i];
-		new_pair.second = children_nodes_[i];
-		util_node_pairs.push_back(new_pair);
+		util_node_pairs[i] = std::make_pair(utilities[i], children_nodes_[i]);
 	}
 
 	// Sort nodes by utility in descending order
@@ -82,18 +104,20 @@ NodeStatus DynamicSelector::tick() {
 		return NodeStatus::FAILURE;
 	}
 
+	// Choose the highest-utility node as the first candidate
 	double current_util = util_node_pairs[0].first;
 	TreeNode* current_child_node = util_node_pairs[0].second;
 
-	// Get current utility of last node ticked
-	double last_util = 0;
+	// Get current pair of last node ticked
+	auto last_pair_iter = util_node_pairs.begin();
 	if (last_child_ != nullptr) {
-		last_util = (std::find_if(util_node_pairs.begin(), util_node_pairs.end(), [this](const auto i) {
+		last_pair_iter = (std::find_if(util_node_pairs.begin(), util_node_pairs.end(), [this](const auto i) {
 			return (i.second == last_child_);
-		}))->first;
+		}));
 	}
+	double last_util = last_pair_iter->first;
 
-	// Tick same node as last tick unless utility gain is greater than threshold
+	// Choose the same node as last tick unless utility gain is greater than threshold
 	if ((last_child_ != current_child_node) && (last_child_ != nullptr) && (current_util < last_util + stability_threshold)) {
 		std::cout << "Enforcing stability: " << current_util << " < " << last_util << " + " << stability_threshold << std::endl;
 		current_child_node = last_child_;
@@ -101,6 +125,9 @@ NodeStatus DynamicSelector::tick() {
 		for (auto iter = util_node_pairs.begin(); iter < util_node_pairs.end(); iter++) {
 			if (iter->second == current_child_node) current_util = iter->first;
 		}
+		// Reorder vector with last_pair in front
+		last_pair_iter->first += stability_threshold;
+		std::sort(util_node_pairs.begin(), util_node_pairs.end());
 	}
 
 	// These are made local variables because DS doesn't directly care about previous ticks
@@ -203,7 +230,7 @@ const std::vector<double> DynamicSelector::getUtilities(
 	// Set utilities at base values
 	std::vector<double> utils(output_size);
 	for (size_t i = 0; i < output_size; i++) {
-		utils[i] = std::fabs((sum_weights[i] - 1) / 2);
+		utils[i] = std::fabs((sum_weights[i] / abs_sum_weights[i] - 1) / 2);
 	}
 
 	// Utilities are a linear combination of normalized inputs and normalized weights

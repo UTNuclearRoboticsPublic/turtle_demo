@@ -147,12 +147,13 @@ int main(int argc, char** argv) {
         5.5,     // Chaser Displacement
         100.0,   // Energy
         5.0,     // Scan Search Fails
-        5.0      // Patrol Search Fails
+        5.0,     // Patrol Search Fails
+        5.0,     // Rest Fails
     };
     std::vector<std::vector<double>> weights = {
-        {-0.25, 0.2,  0.2,  0.0,  0.1, -0.25, 0.0},
-        { 0.2,  0.0,  0.0,  0.2,  0.1,  0.0, -0.5},
-        { 0.0,  0.0,  0.0,  0.0, -1.0,  0.0,  0.0}
+        {-0.25, 0.2,  2.0,  0.0,  0.1, -0.25, 0.0, 0.0},
+        { 0.2,  0.0,  0.0,  0.2,  0.1,  0.0, -0.5, 0.0},
+        { 0.0,  0.0,  0.0,  0.0, -10,   0.0,  0.0, 0.0}
     };
 
     // Register turtle behaviors

@@ -17,7 +17,6 @@
             <ChaseTarget relative_pose="{relative_pose}" chase_velocity="{chase_velocity}"/>
           </ReactiveSequence>
           <Sequence>
-            <!-- Shouldn't the last known pose be unknown at the start? -->
             <ReactiveSequence>
               <GetCurrentPose reference_frame="world" target_frame="turtle2" pose="{chaser_pose}"/>
               <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
