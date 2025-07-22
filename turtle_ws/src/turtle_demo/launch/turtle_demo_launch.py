@@ -4,7 +4,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     return LaunchDescription([
         Node(
-            package='turtlesim',
+            package='turtlesim_ds',
             executable='turtlesim_node',
             output='screen'
         ),
@@ -38,5 +38,10 @@ def generate_launch_description():
             name='turtle_BT',
             output='screen',
             ros_arguments=['--log-level', 'warn']
+        ),
+        Node(
+            package='turtle_demo',
+            executable='turtle_service_handler',
+            name='turtle_service_handler'
         )
     ])

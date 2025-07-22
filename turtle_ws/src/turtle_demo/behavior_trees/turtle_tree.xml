@@ -3,7 +3,7 @@
   <BehaviorTree ID="MainTree">
     <Sequence>
       <SetBlackboardNode value="100" output_key="turtle2_energy"/>
-      <GetCurrentPose reference_frame="world" target_frame="world" pose="{last_known_pose}"/>
+      <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
       <KeepRunningUntilFailure>
         <Fallback name="Main Loop">
           <ReactiveSequence name="Chase Nearby Target">
@@ -79,6 +79,8 @@
       </ForceFailureNode>
       <KeepRunningUntilFailure>
         <Sequence>
+          <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
+          <StopTurtle zero_velocity="{velocity}"/>
           <Fallback>
             <Sequence>
               <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
@@ -93,7 +95,6 @@
           </Fallback>
           <StopTurtle zero_velocity="{velocity}"/>
           <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
-          <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
         </Sequence>
       </KeepRunningUntilFailure>
     </ReactiveFallback>

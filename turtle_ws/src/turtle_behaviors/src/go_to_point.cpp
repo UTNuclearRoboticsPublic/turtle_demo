@@ -73,7 +73,7 @@ NodeStatus GoToPoint::onRunning() {
 
         // Turn if angle difference is too great
         // Use trig to see if the end point will be within goal distance of target
-        if ((target_dist * fabs(std::tan(diff_angle)) > dist_threshold)) {
+        if ((fabs(diff_angle) > M_PI / 2) || (target_dist * fabs(std::tan(diff_angle)) > dist_threshold)) {
             chase_velocity.linear.x = 0;
             chase_velocity.angular.z = scale_rotation_rate * std::max(fabs(diff_angle), max_turn) * diff_angle / fabs(diff_angle);
         }

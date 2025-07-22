@@ -12,7 +12,7 @@
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>turtlesim</depend>
+  <depend>turtlesim_ds</depend>
   <depend>behaviortree_cpp</depend>
   <depend>nrg_utility_behaviors</depend>
   <depend>turtle_behaviors</depend>

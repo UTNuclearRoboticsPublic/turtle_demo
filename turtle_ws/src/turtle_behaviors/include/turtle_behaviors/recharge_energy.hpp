@@ -42,7 +42,7 @@ public:
       };
 
       double new_energy = std::min(energy + energy_per_tick, max_energy);
-      std::cout << "Charging, New energy: " << new_energy << std::endl;
+      // std::cout << "Charging, New energy: " << new_energy << std::endl;
 
       setOutput("energy", new_energy);
       return NodeStatus::SUCCESS;

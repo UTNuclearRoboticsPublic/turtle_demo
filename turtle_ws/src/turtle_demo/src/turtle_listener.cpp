@@ -9,7 +9,7 @@
 #include "tf2/exceptions.h"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/buffer.h"
-#include "turtlesim/srv/spawn.hpp"
+#include "turtlesim_ds/srv/spawn.hpp"
 
 using namespace std::chrono_literals;
 
@@ -30,7 +30,7 @@ public:
 
     // Create a client to spawn a turtle
     spawner_ =
-      this->create_client<turtlesim::srv::Spawn>("spawn");
+      this->create_client<turtlesim_ds::srv::Spawn>("spawn");
 
     // Create turtle2 transform publisher
     publisher_ =
@@ -84,8 +84,8 @@ private:
       // Check if the service is ready
       if (spawner_->service_is_ready()) {
         // Initialize request with turtle name and coordinates
-        // Note that x, y and theta are defined as doubles in turtlesim/srv/Spawn
-        auto request = std::make_shared<turtlesim::srv::Spawn::Request>();
+        // Note that x, y and theta are defined as doubles in turtlesim_ds/srv/Spawn
+        auto request = std::make_shared<turtlesim_ds::srv::Spawn::Request>();
         request->x = 4.0;
         request->y = 2.0;
         request->theta = 0.0;
@@ -93,7 +93,7 @@ private:
 
         // Call request
         using ServiceResponseFuture =
-          rclcpp::Client<turtlesim::srv::Spawn>::SharedFuture;
+          rclcpp::Client<turtlesim_ds::srv::Spawn>::SharedFuture;
         auto response_received_callback = [this](ServiceResponseFuture future) {
             auto result = future.get();
             if (strcmp(result->name.c_str(), "turtle2") == 0) {
@@ -114,7 +114,7 @@ private:
   bool turtle_spawning_service_ready_;
   // if the turtle was successfully spawned
   bool turtle_spawned_;
-  rclcpp::Client<turtlesim::srv::Spawn>::SharedPtr spawner_{nullptr};
+  rclcpp::Client<turtlesim_ds::srv::Spawn>::SharedPtr spawner_{nullptr};
   rclcpp::TimerBase::SharedPtr timer_{nullptr};
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr publisher_{nullptr};
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};

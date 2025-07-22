@@ -100,7 +100,7 @@ NodeStatus DynamicSelector::tick() {
 
 	// If no utility is above threshold, return Failure
 	if (util_node_pairs[0].first < utility_threshold) {
-		std::cout << "Utilities are too low" << std::endl;
+		std::cout << "[DynamicSelector] Utilities are too low, terminating." << std::endl;
 		return NodeStatus::FAILURE;
 	}
 
@@ -119,7 +119,7 @@ NodeStatus DynamicSelector::tick() {
 
 	// Choose the same node as last tick unless utility gain is greater than threshold
 	if ((last_child_ != current_child_node) && (last_child_ != nullptr) && (current_util < last_util + stability_threshold)) {
-		std::cout << "Enforcing stability: " << current_util << " < " << last_util << " + " << stability_threshold << std::endl;
+		// std::cout << "Enforcing stability: " << current_util << " < " << last_util << " + " << stability_threshold << std::endl;
 		current_child_node = last_child_;
 		// Find the current utility of the previous child node
 		for (auto iter = util_node_pairs.begin(); iter < util_node_pairs.end(); iter++) {

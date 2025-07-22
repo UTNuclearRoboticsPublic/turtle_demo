@@ -24,7 +24,6 @@ public:
     }
 
     NodeStatus tick() override {
-      std::cout << "Find corner beginning" << std::endl;
       geometry_msgs::msg::PoseStamped::SharedPtr chaser_pose;
       if (!getInput("chaser_pose", chaser_pose)) {
           std::cout << "ERROR: No chaser pose found." << std::endl;
@@ -53,7 +52,7 @@ public:
       
 
       setOutput("corner_pose", corner_pose);
-      std::cout << "Find corner successful" << std::endl;
+      std::cout << "Found corner successfully." << std::endl;
       return NodeStatus::SUCCESS;
     }
 };
