@@ -31,19 +31,19 @@ NodeStatus DynamicSelector::tick() {
 	// Read input ports
 	std::vector<double> input_data;
 	if (!getInput("input_data", input_data)) {
-		std::cout << "[DynamicSelector] ERROR: No input_data found" << std::endl;
+		std::cout << '[' << name() << "] " << " ERROR: No input_data found" << std::endl;
 		return NodeStatus::FAILURE;
 	};
 
 	double utility_threshold;
 	if (!getInput("utility_threshold", utility_threshold)) {
-		std::cout << "[DynamicSelector] ERROR: No utility_threshold found" << std::endl;
+		std::cout << '[' << name() << "] " << " ERROR: No utility_threshold found" << std::endl;
 		return NodeStatus::FAILURE;
 	};
 
 	double stability_threshold;
 	if (!getInput("stability_threshold", stability_threshold)) {
-		std::cout << "[DynamicSelector] ERROR: No stability_threshold found" << std::endl;
+		std::cout << '[' << name() << "] " << " ERROR: No stability_threshold found" << std::endl;
 		return NodeStatus::FAILURE;
 	};
 
@@ -57,14 +57,14 @@ NodeStatus DynamicSelector::tick() {
 	// Validate inputs, signs should match those of max_inputs
 	for (size_t i = 0; i < input_data.size(); i++) {
 		if (input_data[i] / max_inputs_[i] < 0) {
-			std::cout << "[DynamicSelector] ERROR: Signs of inputs and max_inputs must match" << std::endl;
+			std::cout << '[' << name() << "] " << " ERROR: Signs of inputs and max_inputs must match" << std::endl;
 			return NodeStatus::FAILURE;
 		}
 	}
 
 	// Weights should be MxN where M is number of children, N is number of inputs
 	if ((weights_.size() != children_count) || weights_[0].size() != children_count + input_data.size()) {
-		std::cout << "[DynamicSelector] ERROR: Incorrect dimension of weights matrix" << std::endl;
+		std::cout << '[' << name() << "] " << " ERROR: Incorrect dimension of weights matrix" << std::endl;
 		return NodeStatus::FAILURE;
 	}
 
@@ -73,14 +73,14 @@ NodeStatus DynamicSelector::tick() {
 
 	// Validate utilities, size should match number of children
 	if (utilities.size() != children_count) {
-		std::cout << "[DynamicSelector] ERROR: Number of utility values and number of child nodes don't match" << std::endl;
+		std::cout << '[' << name() << "] " << " ERROR: Number of utility values and number of child nodes don't match" << std::endl;
 		return NodeStatus::FAILURE;
 	}
 
 	// Utilities should be between 0 and 1
 	for (size_t i = 0; i < utilities.size(); i++) {
 		if ((utilities[i] < 0) || (utilities[i] > 1)) {
-			std::cout << "[DynamicSelector] ERROR: Utility value of node " << i << " is " << utilities[i] << ", falls outside of range [0, 1]" << std::endl;
+			std::cout << '[' << name() << "] " << " ERROR: Utility value of node " << i << " is " << utilities[i] << ", falls outside of range [0, 1]" << std::endl;
 			return NodeStatus::FAILURE;
 		}
 	}
@@ -100,7 +100,7 @@ NodeStatus DynamicSelector::tick() {
 
 	// If no utility is above threshold, return Failure
 	if (util_node_pairs[0].first < utility_threshold) {
-		std::cout << "[DynamicSelector] Utilities are too low, terminating." << std::endl;
+		std::cout << '[' << name() << "] " << " Utilities are too low, terminating." << std::endl;
 		return NodeStatus::FAILURE;
 	}
 
@@ -157,7 +157,7 @@ NodeStatus DynamicSelector::tick() {
 				size_t original_idx = std::find(
 					children_nodes_.begin(), children_nodes_.end(), current_child_node) - children_nodes_.begin();
 				fail_count_[original_idx]++;
-				std::cout << "Fail count: (" << fail_count_[0] << ", " << fail_count_[1] << ")" << std::endl;
+				std::cout << '[' << name() << "] " << " Fail count: (" << fail_count_[0] << ", " << fail_count_[1] << ")" << std::endl;
 
 				last_child_ = nullptr;
 

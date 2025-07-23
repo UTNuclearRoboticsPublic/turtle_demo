@@ -4,11 +4,11 @@ namespace turtle_behaviors {
 NodeStatus ChaseTarget::onStart() {
     geometry_msgs::msg::PoseStamped::SharedPtr relative_pose;
     if (!getInput("relative_pose", relative_pose)) {
-        std::cout << "ERROR: No relative_pose found." << std::endl;
+        std::cout << '[' << name() << "] " << "ERROR: No relative_pose found." << std::endl;
         return NodeStatus::FAILURE;
     };
 
-    std::cout << "Chase Target: Beginning" << std::endl;
+    std::cout << '[' << name() << "] " << "Chase Target: Beginning" << std::endl;
     return NodeStatus::RUNNING;
 }
 
@@ -34,7 +34,7 @@ NodeStatus ChaseTarget::onRunning() {
 
     if (target_dist <= dist_threshold) {
         // Return 0 velocity if successful
-        std::cout << "Target has been caught!" << std::endl;
+        std::cout << '[' << name() << "] " << "Target has been caught!" << std::endl;
         setOutput("chase_velocity", chase_velocity);
         return NodeStatus::SUCCESS;
     }

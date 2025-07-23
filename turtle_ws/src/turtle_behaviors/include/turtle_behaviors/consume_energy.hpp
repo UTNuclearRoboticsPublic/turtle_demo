@@ -27,13 +27,13 @@ public:
 
       geometry_msgs::msg::Twist velocity;
       if (!getInput("velocity", velocity)) {
-          std::cout << "WARNING: No velocity found, assuming 0" << std::endl;
+          std::cout << '[' << name() << "] " << "WARNING: No velocity found, assuming 0" << std::endl;
           return NodeStatus::SUCCESS;
       };
 
       double energy;
       if (!getInput("energy", energy)) {
-          std::cout << "ERROR: No energy found." << std::endl;
+          std::cout << '[' << name() << "] " << "ERROR: No energy found." << std::endl;
           return NodeStatus::FAILURE;
       };
 
@@ -46,12 +46,12 @@ public:
       double new_energy = energy - speed * speed_cost_factor - std::fabs(velocity.angular.z) * rot_cost_factor;
 
       if (new_energy > 0) {
-        // std::cout << "Discharging, New Energy: " << new_energy << std::endl;
+        // std::cout << '[' << name() << "] " << "Discharging, New Energy: " << new_energy << std::endl;
         setOutput("energy", new_energy);
         return NodeStatus::SUCCESS;
       }
       else {
-        std::cout << "WARNING: Out of Energy" << std::endl;
+        std::cout << '[' << name() << "] " << "WARNING: Out of Energy" << std::endl;
         setOutput("energy", 0.0);
         return NodeStatus::FAILURE;
       }

@@ -25,13 +25,13 @@ public:
     NodeStatus tick() override {
         geometry_msgs::msg::PoseStamped::SharedPtr chaser_pose;
         if (!getInput("chaser_pose", chaser_pose)) {
-            std::cout << "ERROR: No chaser_pose found." << std::endl;
+            std::cout << '[' << name() << "] " << "ERROR: No chaser_pose found." << std::endl;
             return NodeStatus::FAILURE;
         };
 
         geometry_msgs::msg::PoseStamped::SharedPtr last_known_pose;
         if (!getInput("last_known_pose", last_known_pose)) {
-            std::cout << "ERROR: No last_known_pose found." << std::endl;
+            std::cout << '[' << name() << "] " << "ERROR: No last_known_pose found." << std::endl;
             return NodeStatus::FAILURE;
         };
 

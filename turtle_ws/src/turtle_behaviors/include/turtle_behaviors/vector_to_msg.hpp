@@ -24,7 +24,7 @@ public:
     NodeStatus tick() override {
       std::vector<double> vec;
       if (!getInput("vector", vec)) {
-          std::cout << "ERROR: No vector found." << std::endl;
+          std::cout << '[' << name() << "] " << "ERROR: No vector found." << std::endl;
           return NodeStatus::FAILURE;
       };
 

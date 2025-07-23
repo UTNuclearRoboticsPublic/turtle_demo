@@ -37,16 +37,16 @@ class TurtleInputNode : public InputDataNode {
         std::vector<double> getInputData() override {
             PoseStamped::SharedPtr last_known_pose, chaser_pose;
             if (!getInput("last_known_pose", last_known_pose)) {
-                std::cout << "ERROR: No last known pose found." << std::endl;
+                std::cout << '[' << name() << "] " << "ERROR: No last known pose found." << std::endl;
                 return {};
             };
             if (!getInput("chaser_pose", chaser_pose)) {
-                std::cout << "ERROR: No chaser pose found." << std::endl;
+                std::cout << '[' << name() << "] " << "ERROR: No chaser pose found." << std::endl;
                 return {};
             };
             double energy;
             if (!getInput("energy", energy)) {
-                std::cout << "ERROR: No energy found." << std::endl;
+                std::cout << '[' << name() << "] " << "ERROR: No energy found." << std::endl;
                 return {};
             };
 

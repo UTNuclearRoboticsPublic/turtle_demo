@@ -2,16 +2,16 @@
 
 namespace turtle_behaviors {
 NodeStatus GoToPoint::onStart() {
-    std::cout << "Go to Point: Beginning" << std::endl;
+    std::cout << '[' << name() << "] " << "Beginning" << std::endl;
     // Verify inputs
     geometry_msgs::msg::PoseStamped::SharedPtr target_pose, chaser_pose;
     if (!getInput("target_pose", target_pose)) {
-        std::cout << "ERROR: No target pose found." << std::endl;
+        std::cout << '[' << name() << "] " << "ERROR: No target pose found." << std::endl;
         return NodeStatus::FAILURE;
     };
 
     if (!getInput("chaser_pose", chaser_pose)) {
-        std::cout << "ERROR: No last known pose found." << std::endl;
+        std::cout << '[' << name() << "] " << "ERROR: No last known pose found." << std::endl;
         return NodeStatus::FAILURE;
     };
 
@@ -40,7 +40,7 @@ NodeStatus GoToPoint::onRunning() {
 
     // Succeed if target is within range
     if (target_dist < dist_threshold) {
-        std::cout << "Go to Point: Arrived at target." << std::endl;
+        std::cout << '[' << name() << "] " << "Arrived at target." << std::endl;
         setOutput("chase_velocity", chase_velocity);
         return NodeStatus::SUCCESS;
     }
@@ -88,7 +88,7 @@ NodeStatus GoToPoint::onRunning() {
     }
 
     setOutput("chase_velocity", chase_velocity);
-    //std::cout << "Go to Point: Not at target yet..." << std::endl;
+    //std::cout << '[' << name() << "] " << "Go to Point: Not at target yet..." << std::endl;
     return NodeStatus::RUNNING;
 }
 

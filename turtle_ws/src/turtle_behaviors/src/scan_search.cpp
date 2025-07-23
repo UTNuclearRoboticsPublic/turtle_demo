@@ -2,24 +2,24 @@
 
 namespace turtle_behaviors {
 NodeStatus ScanSearch::onStart() {
-    std::cout << "Scan Search: Beginning" << std::endl;
+    std::cout << '[' << name() << "] " << "Beginning" << std::endl;
 
     // Verify input
     geometry_msgs::msg::PoseStamped::SharedPtr relative_pose;
     if (!getInput("relative_pose", relative_pose)) {
-        std::cout << "ERROR: No relative_pose found." << std::endl;
+        std::cout << '[' << name() << "] " << "ERROR: No relative_pose found." << std::endl;
         return NodeStatus::FAILURE;
     };
 
     geometry_msgs::msg::PoseStamped::SharedPtr chaser_pose;
     if (!getInput("chaser_pose", chaser_pose)) {
-        std::cout << "ERROR: No chaser_pose found." << std::endl;
+        std::cout << '[' << name() << "] " << "ERROR: No chaser_pose found." << std::endl;
         return NodeStatus::FAILURE;
     };
 
     double rotation_speed;
     if (!getInput("rotation_speed", rotation_speed)) {
-        std::cout << "ERROR: No rotation_speed found." << std::endl;
+        std::cout << '[' << name() << "] " << "ERROR: No rotation_speed found." << std::endl;
         return NodeStatus::FAILURE;
     };
 
@@ -76,24 +76,24 @@ NodeStatus ScanSearch::onRunning() {
     total_rotation += diff_angle;
     last_angle = chaser_angle;
 
-    // std::cout << "Total Rotation: " << total_rotation<< "" << std::endl;
+    // std::cout << '[' << name() << "] " << "Total Rotation: " << total_rotation<< "" << std::endl;
 
     // Target spotted if angle less than 15 degrees and target within sight radius
     if ((fabs(relative_angle) <= M_PI / 12) && (relative_dist <= 5.5)) {
-        std::cout << "Scan Search: Target spotted" << std::endl;
+        std::cout << '[' << name() << "] " << "Target spotted" << std::endl;
         setOutput("scan_velocity", scan_velocity);  // Zero
         return NodeStatus::SUCCESS;
     }
 
     // Fail if a full rotation is made without seeing the target
     else if (fabs(total_rotation) >= M_PI * 2) {
-        std::cout << "Scan Search failed" << std::endl;
+        std::cout << '[' << name() << "] " << "Scan Search failed" << std::endl;
         setOutput("scan_velocity", scan_velocity);  // Zero
         return NodeStatus::FAILURE;
     }
 
     else {
-        //std::cout << "Scan Search: Target not yet spotted" << std::endl;
+        //std::cout << '[' << name() << "] " << "Scan Search: Target not yet spotted" << std::endl;
         scan_velocity.angular.z = rotation_speed;
         setOutput("scan_velocity", scan_velocity);
         return NodeStatus::RUNNING;

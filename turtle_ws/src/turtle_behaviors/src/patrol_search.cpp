@@ -2,18 +2,18 @@
 
 namespace turtle_behaviors {
 NodeStatus PatrolSearch::onStart() {
-    std::cout << "Patrol Search: Beginning" << std::endl;
+    std::cout << '[' << name() << "] " << "Beginning" << std::endl;
     
     // Verify input
     geometry_msgs::msg::PoseStamped::SharedPtr chaser_pose;
     if (!getInput("chaser_pose", chaser_pose)) {
-        std::cout << "ERROR: No chaser pose found." << std::endl;
+        std::cout << '[' << name() << "] " << "ERROR: No chaser pose found." << std::endl;
         return NodeStatus::FAILURE;
     };
 
     double radius;
     if (!getInput("radius", radius)) {
-        std::cout << "ERROR: No radius found." << std::endl;
+        std::cout << '[' << name() << "] " << "ERROR: No radius found." << std::endl;
         return NodeStatus::FAILURE;
     };
 
@@ -38,7 +38,7 @@ NodeStatus PatrolSearch::onStart() {
 }
 
 NodeStatus PatrolSearch::onRunning() {
-    //std::cout << "TARGET ANGLE: " << target_angle << std::endl; 
+    //std::cout << '[' << name() << "] " << "TARGET ANGLE: " << target_angle << std::endl; 
     geometry_msgs::msg::PoseStamped::SharedPtr chaser_pose;
     double radius;
     getInput("chaser_pose", chaser_pose);
@@ -76,7 +76,7 @@ NodeStatus PatrolSearch::onRunning() {
     }
 
     if (current_sub_phase == TURN) {
-        //std::cout << "TURN" << std::endl;
+        //std::cout << '[' << name() << "] " << "TURN" << std::endl;
         // Rotate towards target angle
         double turn_direction;
         if (diff_angle == 0) turn_direction = 0;
@@ -105,7 +105,7 @@ NodeStatus PatrolSearch::onRunning() {
         // Update target distance and angle
         double target_dist = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
         target_angle = atan2(y_diff, x_diff);  // Everything is bad now
-        //std::cout << "FORWARD" << std::endl;
+        //std::cout << '[' << name() << "] " << "FORWARD" << std::endl;
 
         // Move towards target point
         // Slow down near target to avoid overshoot
@@ -129,7 +129,7 @@ NodeStatus PatrolSearch::onRunning() {
             else if (current_phase == SHORT) {
                 current_phase = LONG;
                 if (chaser_pose->pose.position.x <= 5.5) {
-                    //std::cout << "SOMETHING WENT WRONG" << std::endl;
+                    //std::cout << '[' << name() << "] " << "SOMETHING WENT WRONG" << std::endl;
                     target_angle = 0;
                 }
                 else target_angle = M_PI;
