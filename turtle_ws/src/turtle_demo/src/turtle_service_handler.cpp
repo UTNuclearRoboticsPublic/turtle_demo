@@ -24,7 +24,7 @@ private:
         std_srvs::srv::Trigger::Response::SharedPtr resp) {
         auto change_image_req = std::make_shared<turtlesim_ds::srv::ChangeImage::Request>();
         change_image_req->turtle_name = "turtle1";
-        change_image_req->img_index = 2;
+        change_image_req->img_index = 8;
         change_image_->async_send_request(change_image_req);
         RCLCPP_INFO(this->get_logger(), "Successfully triggered 'target seen' image change.");
         resp->success = true;
@@ -34,7 +34,7 @@ private:
         std_srvs::srv::Trigger::Response::SharedPtr resp) {
         auto change_image_req = std::make_shared<turtlesim_ds::srv::ChangeImage::Request>();
         change_image_req->turtle_name = "turtle1";
-        change_image_req->img_index = 3;
+        change_image_req->img_index = 9;
         change_image_->async_send_request(change_image_req);
         RCLCPP_INFO(this->get_logger(), "Successfully triggered 'target lost' image change.");
         resp->success = true;

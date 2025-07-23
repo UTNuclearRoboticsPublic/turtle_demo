@@ -90,6 +90,7 @@ private:
         request->y = 2.0;
         request->theta = 0.0;
         request->name = "turtle2";
+        request->img_index = 5;
 
         // Call request
         using ServiceResponseFuture =
