@@ -43,11 +43,14 @@ public:
         pow(velocity.linear.z, 2)
       );
 
-      double new_energy = energy - speed * speed_cost_factor - std::fabs(velocity.angular.z) * rot_cost_factor;
-
-      if (new_energy > 0) {
+      double energy_consumed = speed * speed_cost_factor - std::fabs(velocity.angular.z) * rot_cost_factor;
+      if (energy_consumed == 0) {
+        std::cout << '[' << name() << "] " << "Zero energy consumed." << std::endl;
+        return NodeStatus::SUCCESS;
+      }
+      if (energy > energy_consumed) {
         // std::cout << '[' << name() << "] " << "Discharging, New Energy: " << new_energy << std::endl;
-        setOutput("energy", new_energy);
+        setOutput("energy", energy - energy_consumed);
         return NodeStatus::SUCCESS;
       }
       else {

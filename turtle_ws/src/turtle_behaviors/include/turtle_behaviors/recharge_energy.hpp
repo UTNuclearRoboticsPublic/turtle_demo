@@ -23,29 +23,7 @@ public:
     }
 
     NodeStatus tick() override {
-      double max_energy;
-      if (!getInput("max_energy", max_energy)) {
-          std::cout << '[' << name() << "] " << "WARNING: No max_energy found" << std::endl;
-          return NodeStatus::FAILURE;
-      };
-
-      double energy_per_tick;
-      if (!getInput("energy_per_tick", energy_per_tick)) {
-          std::cout << '[' << name() << "] " << "WARNING: No energy_per_tick found" << std::endl;
-          return NodeStatus::FAILURE;
-      };
-
-      double energy;
-      if (!getInput("energy", energy)) {
-          std::cout << '[' << name() << "] " << "ERROR: No energy found." << std::endl;
-          return NodeStatus::FAILURE;
-      };
-
-      double new_energy = std::min(energy + energy_per_tick, max_energy);
-      // std::cout << '[' << name() << "] " << "Charging, New energy: " << new_energy << std::endl;
-
-      setOutput("energy", new_energy);
-      return NodeStatus::SUCCESS;
+      
     }
 };
 } // turtle_behaviors
