@@ -22,7 +22,7 @@ public:
     }
 
     NodeStatus tick() override {
-      static const double speed_cost_factor = 0.1;
+      static const double speed_cost_factor = 0.05;
       static const double rot_cost_factor = 0.05;
 
       geometry_msgs::msg::Twist velocity;
@@ -43,13 +43,13 @@ public:
         pow(velocity.linear.z, 2)
       );
 
-      double energy_consumed = speed * speed_cost_factor - std::fabs(velocity.angular.z) * rot_cost_factor;
+      double energy_consumed = speed * speed_cost_factor + std::fabs(velocity.angular.z) * rot_cost_factor;
       if (energy_consumed == 0) {
-        std::cout << '[' << name() << "] " << "Zero energy consumed." << std::endl;
+        // std::cout << '[' << name() << "] " << "Zero energy consumed." << std::endl;
         return NodeStatus::SUCCESS;
       }
       if (energy > energy_consumed) {
-        // std::cout << '[' << name() << "] " << "Discharging, New Energy: " << new_energy << std::endl;
+        // std::cout << '[' << name() << "] " << "Discharging, New Energy: " << energy - energy_consumed << std::endl;
         setOutput("energy", energy - energy_consumed);
         return NodeStatus::SUCCESS;
       }

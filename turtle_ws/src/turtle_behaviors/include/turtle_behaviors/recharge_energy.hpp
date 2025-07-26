@@ -8,11 +8,11 @@ using BT::BidirectionalPort;
 using BT::PortsList;
 
 namespace turtle_behaviors {
-class RechargeEnergy : public BT::SyncActionNode
+class RechargeEnergy : public BT::StatefulActionNode
 {
 public:
     RechargeEnergy(const std::string& name, const NodeConfig& conf)
-        : BT::SyncActionNode(name, conf) {}
+        : BT::StatefulActionNode(name, conf) {}
 
     static PortsList providedPorts() {
       return {
@@ -22,8 +22,8 @@ public:
       };
     }
 
-    NodeStatus tick() override {
-      
-    }
+    NodeStatus onStart() override;
+    NodeStatus onRunning() override;
+    void onHalted() override;
 };
 } // turtle_behaviors

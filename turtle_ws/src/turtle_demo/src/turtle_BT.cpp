@@ -3,10 +3,12 @@
 #include <nrg_utility_behaviors/nrg_utility_behaviors.hpp>
 #include <turtle_behaviors/turtle_behaviors.hpp>
 #include <behaviortree_cpp/actions/sleep_node.h>
+#include <behaviortree_cpp/actions/always_success_node.h>
 #include <behaviortree_cpp/actions/always_failure_node.h>
 #include <behaviortree_cpp/actions/set_blackboard_node.h>
 #include <behaviortree_cpp/decorators/force_success_node.h>
 #include <behaviortree_cpp/decorators/force_failure_node.h>
+#include <behaviortree_cpp/decorators/repeat_node.h>
 #include <behaviortree_cpp/xml_parsing.h>
 #include <behaviortree_cpp/loggers/groot2_publisher.h>
 #include <dynamic_selector_ros2/dynamic_selector.h>
@@ -162,14 +164,16 @@ int main(int argc, char** argv) {
     // Register BTCPP behaviors
     factory.registerNodeType<BT::ForceSuccessNode>("ForceSuccessNode");
     factory.registerNodeType<BT::ForceFailureNode>("ForceFailureNode");
+    factory.registerNodeType<BT::AlwaysSuccessNode>("AlwaysSuccessNode");
     factory.registerNodeType<BT::AlwaysFailureNode>("AlwaysFailureNode");
     factory.registerNodeType<BT::SetBlackboardNode>("SetBlackboardNode");
+    factory.registerNodeType<BT::RepeatNode>("RepeatNode");
 
     // Register Dynamic Selector behaviors
     factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", max_inputs, weights);
     factory.registerNodeType<DS::TurtleInputNode>("InputDataNode");
 
-    auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_tree.xml");
+    auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/control_tree.xml");
     std::string xml_models = BT::writeTreeNodesModelXML(factory);
     
     std::cout << "Beginning behavior tree" << std::endl;

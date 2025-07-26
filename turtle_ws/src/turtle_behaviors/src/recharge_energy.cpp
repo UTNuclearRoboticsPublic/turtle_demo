@@ -2,6 +2,8 @@
 
 namespace turtle_behaviors {
 NodeStatus RechargeEnergy::onStart() {
+    std::cout << '[' << name() << "] " << "Charging..." << std::endl;
+
     double max_energy;
     if (!getInput("max_energy", max_energy)) {
         std::cout << '[' << name() << "] " << "WARNING: No max_energy found" << std::endl;
@@ -20,17 +22,15 @@ NodeStatus RechargeEnergy::onStart() {
         return NodeStatus::FAILURE;
     };
 
-    std::cout << '[' << name() << "] " << "Charging..." << std::endl;
     return NodeStatus::RUNNING;
 }
 
 NodeStatus RechargeEnergy::onRunning() {
     double max_energy, energy_per_tick, energy;
-    getInput("max_energy", max_energy)
-    getInput("energy_per_tick", energy_per_tick)
-    getInput("energy", energy)
+    getInput("max_energy", max_energy);
+    getInput("energy_per_tick", energy_per_tick);
+    getInput("energy", energy);
     
-
     double new_energy = std::min(energy + energy_per_tick, max_energy);
     // std::cout << '[' << name() << "] " << "New energy: " << new_energy << std::endl;
 
