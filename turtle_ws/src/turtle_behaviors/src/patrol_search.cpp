@@ -89,8 +89,7 @@ NodeStatus PatrolSearch::onRunning() {
             current_sub_phase = FORWARD;
             if (current_phase == LONG) {
                 // Go to the opposite wall in the x-direction
-                target_point.first = 11 - target_point.first;
-                // target_point.second = chaser_pose->pose.position.y;
+                target_point.first = (target_point.first > 5.5) ? radius : 11 - radius;
             }
             else if (current_phase == SHORT) {
                 target_point.first = chaser_pose->pose.position.x;

@@ -34,11 +34,22 @@ public:
             std::cout << '[' << name() << "] " << "ERROR: No last_known_pose found." << std::endl;
             return NodeStatus::FAILURE;
         };
+        
+        // Compute current chaser angle (Axis angle formula)
+        double chaser_angle;
+        double q_w = chaser_pose->pose.orientation.w;
+        double q_z = chaser_pose->pose.orientation.z;
+        if (q_z == 0) chaser_angle = 0;
+        else chaser_angle = 2 * acos(q_w) * q_z / abs(q_z);  // Ranges from 0 to 2*pi
 
-        // Get angle between chaser and last known target
-        double rel_x = last_known_pose->pose.position.x - chaser_pose->pose.position.x;
-        double rel_y = last_known_pose->pose.position.y - chaser_pose->pose.position.y;
-        double relative_angle = atan2(rel_y, rel_x);
+        // Get target angle
+        double target_x = last_known_pose->pose.position.x - chaser_pose->pose.position.x;
+        double target_y = last_known_pose->pose.position.y - chaser_pose->pose.position.y;
+        double target_angle = atan2(target_y, target_x);
+
+        // Get relative angle
+        double relative_angle = target_angle - chaser_angle;
+        std::cout << '[' << name() << "] " << "Relative angle: " << relative_angle << std::endl;
 
         // Success if angle is positive, Failure if not
         if (relative_angle >= 0) return NodeStatus::SUCCESS;

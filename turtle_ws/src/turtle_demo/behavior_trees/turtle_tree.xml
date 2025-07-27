@@ -23,6 +23,9 @@
           <Sequence>
             <TriggerService service_name="/target_lost"/>
             <ReactiveSequence>
+              <Inverter>
+                <SubTree ID="Proximity Check"/>
+              </Inverter>
               <GetCurrentPose reference_frame="world" target_frame="turtle2" pose="{chaser_pose}"/>
               <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
               <InputDataNode last_known_pose="{last_known_pose}" chaser_pose="{chaser_pose}" energy="{turtle2_energy}" data="{data}"/>
@@ -41,6 +44,7 @@
               </DynamicSelector>
             </ReactiveSequence>
           </Sequence>
+          <AlwaysSuccessNode/>
         </Fallback>
       </KeepRunningUntilFailure>
     </Sequence>
@@ -77,32 +81,35 @@
     Input Ports: chaser_pose, relative_pose, 
     Bidirectional Ports: last_known_pose, energy
     -->
-    <ReactiveFallback>
-      <SubTree ID="Proximity Check"/>
-      <ForceFailureNode>
+    <ReactiveSequence>
+      <Inverter>
+        <SubTree ID="Proximity Check"/>
+      </Inverter>
+      <Fallback>
         <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
-      </ForceFailureNode>
+        <RechargeEnergy max_energy="100" energy_per_tick = "0.5" energy="{energy}"/>
+      </Fallback>
       <KeepRunningUntilFailure>
-        <Sequence>
-          <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
-          <StopTurtle zero_velocity="{velocity}"/>
+        <SequenceWithMemory>
           <Fallback>
             <Sequence>
               <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
-              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="-1.0" scan_velocity="{velocity}"/>
+              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
             </Sequence>
             <Sequence>
               <Inverter>
                 <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
               </Inverter>
-              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
+              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="-1.0" scan_velocity="{velocity}"/>
             </Sequence>
           </Fallback>
           <StopTurtle zero_velocity="{velocity}"/>
           <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
-        </Sequence>
+          <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
+          <StopTurtle zero_velocity="{velocity}"/>
+        </SequenceWithMemory>
       </KeepRunningUntilFailure>
-    </ReactiveFallback>
+    </ReactiveSequence>
   </BehaviorTree>
 
   <BehaviorTree ID="Patrol Search">
@@ -110,36 +117,40 @@
     Input Port: chaser_pose
     Bidirectional Port: energy
     -->
-    <ReactiveFallback>
-      <SubTree ID="Proximity Check"/>
-      <ForceFailureNode>
+    <ReactiveSequence>
+      <Inverter>
+        <SubTree ID="Proximity Check"/>
+      </Inverter>
+      <Fallback>
         <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
-      </ForceFailureNode>
-      <Sequence>
+        <RechargeEnergy max_energy="100" energy_per_tick = "0.5" energy="{energy}"/>
+      </Fallback>
+      <SequenceWithMemory>
         <FindCorner corner_pose="{corner_pose}" radius="2.0" chaser_pose="{chaser_pose}"/>
         <GoToPoint target_pose="{corner_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
         <StopTurtle zero_velocity="{velocity}"/>
         <PatrolSearch chaser_pose="{chaser_pose}" radius="2.0" chase_velocity="{velocity}"/>
-      </Sequence>
-    </ReactiveFallback>
+      </SequenceWithMemory>
+    </ReactiveSequence>
   </BehaviorTree>
 
   <BehaviorTree ID="Rest">
     <!--
     Bidirectional Port: energy
     -->
-    <ReactiveFallback>
-      <SubTree ID="Proximity Check"/>
-      <ForceFailureNode>
-        <Sequence>
-          <StopTurtle zero_velocity="{velocity}"/>
-          <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
-        </Sequence>
-      </ForceFailureNode>
-      <KeepRunningUntilFailure>
+    <Sequence>
+      <Print message="Beginning rest"/>
+      <StopTurtle zero_velocity="{velocity}"/>
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
+      <ReactiveSequence>
+        <Print message="Rest reactive sequence"/>
+        <Inverter>
+          <SubTree ID="Proximity Check"/>
+        </Inverter>
         <RechargeEnergy max_energy="100" energy_per_tick = "0.5" energy="{energy}"/>
-      </KeepRunningUntilFailure>
-    </ReactiveFallback>
+      </ReactiveSequence>
+      <Print message="Ending rest"/>
+    </Sequence>
   </BehaviorTree>
 
 </root>

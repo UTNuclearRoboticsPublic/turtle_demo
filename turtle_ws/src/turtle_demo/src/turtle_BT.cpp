@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
     factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", max_inputs, weights);
     factory.registerNodeType<DS::TurtleInputNode>("InputDataNode");
 
-    auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/control_tree.xml");
+    auto tree = factory.createTreeFromFile("/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_tree.xml");
     std::string xml_models = BT::writeTreeNodesModelXML(factory);
     
     std::cout << "Beginning behavior tree" << std::endl;
