@@ -4,6 +4,7 @@
     <Sequence>
       <SetBlackboardNode value="100" output_key="turtle2_energy"/>
       <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
+      <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{center_pose}"/>
       <KeepRunningUntilFailure>
         <Fallback name="Main Loop">
           <Sequence>
@@ -32,7 +33,7 @@
                 <Fallback name="Target Out of Range">
                   <Sequence>
                     <SubTree ID="Rest" energy="{turtle2_energy}"/>
-                    <SubTree ID="Scan Search" chaser_pose="{chaser_pose}" relative_pose="{relative_pose}" last_known_pose="{last_known_pose}" energy="{turtle2_energy}"/>
+                    <SubTree ID="Scan Search" chaser_pose="{chaser_pose}" relative_pose="{relative_pose}" last_known_pose="{last_known_pose}" center_pose="{center_pose}" energy="{turtle2_energy}"/>
                   </Sequence>
                   <Sequence>
                     <SubTree ID="Rest" energy="{turtle2_energy}"/>
@@ -84,30 +85,27 @@
       <Inverter>
         <SubTree ID="Proximity Check"/>
       </Inverter>
-      <Fallback>
-        <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
-        <RechargeEnergy max_energy="100" energy_per_tick = "0.5" energy="{energy}"/>
-      </Fallback>
-      <KeepRunningUntilFailure>
-        <SequenceWithMemory>
-          <Fallback>
-            <Sequence>
-              <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
-              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
-            </Sequence>
-            <Sequence>
-              <Inverter>
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
+      <Sequence>
+        <GoToPoint target_pose="{center_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
+        <KeepRunningUntilFailure>
+          <Sequence>
+            <Fallback>
+              <Sequence>
                 <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
-              </Inverter>
+                <Inverter>
+                  <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
+                </Inverter>
+              </Sequence>
               <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="-1.0" scan_velocity="{velocity}"/>
-            </Sequence>
-          </Fallback>
-          <StopTurtle zero_velocity="{velocity}"/>
-          <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
-          <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
-          <StopTurtle zero_velocity="{velocity}"/>
-        </SequenceWithMemory>
-      </KeepRunningUntilFailure>
+            </Fallback>
+            <StopTurtle zero_velocity="{velocity}"/>
+            <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
+            <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
+            <StopTurtle zero_velocity="{velocity}"/>
+          </Sequence>
+        </KeepRunningUntilFailure>
+      </Sequence>
     </ReactiveSequence>
   </BehaviorTree>
 
@@ -120,16 +118,13 @@
       <Inverter>
         <SubTree ID="Proximity Check"/>
       </Inverter>
-      <Fallback>
-        <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
-        <RechargeEnergy max_energy="100" energy_per_tick = "0.5" energy="{energy}"/>
-      </Fallback>
-      <SequenceWithMemory>
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
+      <Sequence>
         <FindCorner corner_pose="{corner_pose}" radius="2.0" chaser_pose="{chaser_pose}"/>
         <GoToPoint target_pose="{corner_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
         <StopTurtle zero_velocity="{velocity}"/>
         <PatrolSearch chaser_pose="{chaser_pose}" radius="2.0" chase_velocity="{velocity}"/>
-      </SequenceWithMemory>
+      </Sequence>
     </ReactiveSequence>
   </BehaviorTree>
 

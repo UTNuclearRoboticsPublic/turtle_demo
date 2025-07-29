@@ -85,10 +85,7 @@
       <Inverter>
         <SubTree ID="Proximity Check"/>
       </Inverter>
-      <Fallback>
-        <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
-        <RechargeEnergy max_energy="100" energy_per_tick = "0.5" energy="{energy}"/>
-      </Fallback>
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
       <KeepRunningUntilFailure>
         <SequenceWithMemory>
           <Fallback>
@@ -121,10 +118,7 @@
       <Inverter>
         <SubTree ID="Proximity Check"/>
       </Inverter>
-      <Fallback>
-        <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
-        <RechargeEnergy max_energy="100" energy_per_tick = "0.5" energy="{energy}"/>
-      </Fallback>
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
       <SequenceWithMemory>
         <FindCorner corner_pose="{corner_pose}" radius="2.0" chaser_pose="{chaser_pose}"/>
         <GoToPoint target_pose="{corner_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>

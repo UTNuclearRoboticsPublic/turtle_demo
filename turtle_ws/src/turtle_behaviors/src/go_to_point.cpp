@@ -88,7 +88,7 @@ NodeStatus GoToPoint::onRunning() {
     }
 
     setOutput("chase_velocity", chase_velocity);
-    //std::cout << '[' << name() << "] " << "Go to Point: Not at target yet..." << std::endl;
+    // std::cout << '[' << name() << "] " << "Not at target yet..." << std::endl;
     return NodeStatus::RUNNING;
 }
 

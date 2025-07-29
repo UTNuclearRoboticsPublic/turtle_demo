@@ -119,6 +119,7 @@ NodeStatus PatrolSearch::onRunning() {
                 // Finish search if next long sweep would be out of bounds
                 if ((goal == UP && target_point.second + radius >= 11) ||
                     (goal == DOWN && target_point.second - radius <= 0)) {
+                    std::cout << '[' << name() << "] " << "Complete." << std::endl;
                     return NodeStatus::FAILURE;
                 }
                 current_phase = SHORT;

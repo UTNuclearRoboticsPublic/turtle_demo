@@ -23,6 +23,8 @@ NodeStatus ScanSearch::onStart() {
         return NodeStatus::FAILURE;
     };
 
+    // std::cout << '[' << name() << "] " << "Rotation speed: " << rotation_speed << std::endl;
+
     total_rotation = 0;
 
     // Compute current angle (Axis angle formula)
@@ -93,7 +95,7 @@ NodeStatus ScanSearch::onRunning() {
     }
 
     else {
-        //std::cout << '[' << name() << "] " << "Scan Search: Target not yet spotted" << std::endl;
+        // std::cout << '[' << name() << "] " << "Total rotation: " << total_rotation << std::endl;
         scan_velocity.angular.z = rotation_speed;
         setOutput("scan_velocity", scan_velocity);
         return NodeStatus::RUNNING;
