@@ -67,18 +67,20 @@ NodeStatus ScanSearch::onRunning() {
     // If difference is >pi then direction is wrong
     // Add or subtract 2pi to compensate
     if (abs(diff_angle) > M_PI) {
-        if (relative_angle > 0) {
-            diff_angle = relative_angle - chaser_angle - 2 * M_PI;
+        if (diff_angle > 0) {
+            diff_angle -= 2 * M_PI;
         }
         else {
-            diff_angle = relative_angle - chaser_angle + 2 * M_PI;
+            diff_angle += 2 * M_PI;
         }
     }
+
+    // std::cout << '[' << name() << "] " << diff_angle << " = " << chaser_angle << " - " << last_angle << std::endl;
 
     total_rotation += diff_angle;
     last_angle = chaser_angle;
 
-    // std::cout << '[' << name() << "] " << "Total Rotation: " << total_rotation<< "" << std::endl;
+    //std::cout << '[' << name() << "] " << "Total Rotation: " << total_rotation<< "" << std::endl;
 
     // Target spotted if angle less than 15 degrees and target within sight radius
     if ((fabs(relative_angle) <= M_PI / 12) && (relative_dist <= 5.5)) {

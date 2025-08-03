@@ -5,7 +5,7 @@
       <SetBlackboardNode value="100" output_key="turtle2_energy"/>
       <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
       <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{center_pose}"/>
-      <KeepRunningUntilFailure>
+      <RetryNode num_attempts="-1">
         <Fallback name="Main Loop">
           <Sequence>
             <SubTree ID="Proximity Check"/>
@@ -43,9 +43,8 @@
               </RepeatNode>
             </ReactiveSequence>
           </Sequence>
-          <AlwaysSuccessNode/>
         </Fallback>
-      </KeepRunningUntilFailure>
+      </RetryNode>
     </Sequence>
   </BehaviorTree>
 
@@ -69,9 +68,8 @@
       </Sequence>
       <Sequence>
         <StopTurtle zero_velocity="{velocity}"/>
-        <ForceFailureNode>
-          <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{velocity}"/>
-        </ForceFailureNode>
+        <PublishMessageToTopic topic="/turtle2/cmd_vel" value="{velocity}"/>
+        <AlwaysFailureNode/>
       </Sequence>
     </Fallback>
   </BehaviorTree>
@@ -90,15 +88,11 @@
         <GoToPoint target_pose="{center_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
         <KeepRunningUntilFailure>
           <Sequence>
-            <Fallback>
-              <Sequence>
-                <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
-                <Inverter>
-                  <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
-                </Inverter>
-              </Sequence>
+            <IfThenElse>
+              <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
               <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="-1.0" scan_velocity="{velocity}"/>
-            </Fallback>
+              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
+            </IfThenElse>
             <StopTurtle zero_velocity="{velocity}"/>
             <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
             <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>

@@ -4,7 +4,8 @@
     <Sequence>
       <SetBlackboardNode value="100" output_key="turtle2_energy"/>
       <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
-      <KeepRunningUntilFailure>
+      <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{center_pose}"/>
+      <RetryNode num_attempts="-1">
         <Fallback name="Main Loop">
           <Sequence>
             <SubTree ID="Proximity Check"/>
@@ -13,10 +14,10 @@
               <SubTree ID="Proximity Check"/>
               <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
               <GetCurrentPose reference_frame="turtle2" target_frame="turtle1" pose="{relative_pose}"/>
-              <Fallback>
+              <ReactiveFallback>
                 <SubTree ID="Move Turtle" velocity="{chase_velocity}" energy="{turtle2_energy}"/>
                 <RechargeEnergy max_energy="100" energy_per_tick = "0.5" energy="{turtle2_energy}"/>
-              </Fallback>
+              </ReactiveFallback>
               <ChaseTarget relative_pose="{relative_pose}" chase_velocity="{chase_velocity}"/>
             </ReactiveSequence>
           </Sequence>
@@ -44,9 +45,8 @@
               </DynamicSelector>
             </ReactiveSequence>
           </Sequence>
-          <AlwaysSuccessNode/>
         </Fallback>
-      </KeepRunningUntilFailure>
+      </RetryNode>
     </Sequence>
   </BehaviorTree>
 
@@ -86,26 +86,22 @@
         <SubTree ID="Proximity Check"/>
       </Inverter>
       <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
-      <KeepRunningUntilFailure>
-        <SequenceWithMemory>
-          <Fallback>
-            <Sequence>
+      <Sequence>
+        <GoToPoint target_pose="{center_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
+        <KeepRunningUntilFailure>
+          <Sequence>
+            <IfThenElse>
               <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
-              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
-            </Sequence>
-            <Sequence>
-              <Inverter>
-                <RelativeAnglePositive chaser_pose="{chaser_pose}" last_known_pose="{last_known_pose}"/>
-              </Inverter>
               <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="-1.0" scan_velocity="{velocity}"/>
-            </Sequence>
-          </Fallback>
-          <StopTurtle zero_velocity="{velocity}"/>
-          <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
-          <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
-          <StopTurtle zero_velocity="{velocity}"/>
-        </SequenceWithMemory>
-      </KeepRunningUntilFailure>
+              <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
+            </IfThenElse>
+            <StopTurtle zero_velocity="{velocity}"/>
+            <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
+            <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
+            <StopTurtle zero_velocity="{velocity}"/>
+          </Sequence>
+        </KeepRunningUntilFailure>
+      </Sequence>
     </ReactiveSequence>
   </BehaviorTree>
 
@@ -119,12 +115,12 @@
         <SubTree ID="Proximity Check"/>
       </Inverter>
       <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
-      <SequenceWithMemory>
+      <Sequence>
         <FindCorner corner_pose="{corner_pose}" radius="2.0" chaser_pose="{chaser_pose}"/>
         <GoToPoint target_pose="{corner_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
         <StopTurtle zero_velocity="{velocity}"/>
         <PatrolSearch chaser_pose="{chaser_pose}" radius="2.0" chase_velocity="{velocity}"/>
-      </SequenceWithMemory>
+      </Sequence>
     </ReactiveSequence>
   </BehaviorTree>
 

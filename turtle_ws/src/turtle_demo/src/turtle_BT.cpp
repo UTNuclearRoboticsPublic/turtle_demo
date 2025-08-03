@@ -9,6 +9,7 @@
 #include <behaviortree_cpp/decorators/force_success_node.h>
 #include <behaviortree_cpp/decorators/force_failure_node.h>
 #include <behaviortree_cpp/decorators/repeat_node.h>
+#include <behaviortree_cpp/decorators/retry_node.h>
 #include <behaviortree_cpp/xml_parsing.h>
 #include <behaviortree_cpp/loggers/groot2_publisher.h>
 #include <dynamic_selector_ros2/dynamic_selector.h>
@@ -168,6 +169,7 @@ int main(int argc, char** argv) {
     factory.registerNodeType<BT::AlwaysFailureNode>("AlwaysFailureNode");
     factory.registerNodeType<BT::SetBlackboardNode>("SetBlackboardNode");
     factory.registerNodeType<BT::RepeatNode>("RepeatNode");
+    factory.registerNodeType<BT::RetryNode>("RetryNode");
 
     // Register Dynamic Selector behaviors
     factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", max_inputs, weights);
