@@ -45,6 +45,8 @@
           </Sequence>
         </Fallback>
       </RetryNode>
+      <StopTurtle zero_velocity="{velocity}"/>
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
     </Sequence>
   </BehaviorTree>
 
