@@ -6,6 +6,14 @@
       <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
       <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{center_pose}"/>
       <RetryNode num_attempts="-1">
+        <Sequence name="Wait For Target Motion">
+          <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{target_pose}"/>
+          <Inverter>
+            <ArePosesEqual pose_1="{last_known_pose}" pose_2="{target_pose}"/>
+          </Inverter>
+        </Sequence>
+      </RetryNode>
+      <RetryNode num_attempts="-1">
         <Fallback name="Main Loop">
           <Sequence>
             <SubTree ID="Proximity Check"/>
@@ -39,7 +47,7 @@
                 </Sequence>
               </ForceSuccessNode>
               <DynamicSelector name="Target Out of Range" input_data="{data}" utility_threshold="0.1" stability_threshold = "0.1" utilities="{utils}">
-                <SubTree ID="Scan Search" chaser_pose="{chaser_pose}" relative_pose="{relative_pose}" last_known_pose="{last_known_pose}" energy="{turtle2_energy}"/>
+                <SubTree ID="Scan Search" chaser_pose="{chaser_pose}" relative_pose="{relative_pose}" last_known_pose="{last_known_pose}" center_pose="{center_pose}" energy="{turtle2_energy}"/>
                 <SubTree ID="Patrol Search" chaser_pose="{chaser_pose}" energy="{turtle2_energy}"/>
                 <SubTree ID="Rest" energy="{turtle2_energy}"/>
               </DynamicSelector>
@@ -80,7 +88,7 @@
 
   <BehaviorTree ID="Scan Search">
     <!--
-    Input Ports: chaser_pose, relative_pose, 
+    Input Ports: chaser_pose, relative_pose, center_pose
     Bidirectional Ports: last_known_pose, energy
     -->
     <ReactiveSequence>
@@ -97,6 +105,7 @@
               <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="-1.0" scan_velocity="{velocity}"/>
               <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
             </IfThenElse>
+            <TriggerService service_name="/target_seen_short"/>
             <StopTurtle zero_velocity="{velocity}"/>
             <GetCurrentPose reference_frame="world" target_frame="turtle1" pose="{last_known_pose}"/>
             <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
