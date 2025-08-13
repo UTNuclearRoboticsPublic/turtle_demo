@@ -9,6 +9,7 @@
 #include <turtle_behaviors/vector_to_msg.hpp>
 #include <turtle_behaviors/consume_energy.hpp>
 #include <turtle_behaviors/recharge_energy.hpp>
+#include <turtle_behaviors/are_poses_equal.hpp>
 
 void registerTurtleBehaviors(BT::BehaviorTreeFactory& factory) {
     factory.registerNodeType<turtle_behaviors::TargetWithinRange>("TargetWithinRange");
@@ -22,5 +23,6 @@ void registerTurtleBehaviors(BT::BehaviorTreeFactory& factory) {
     factory.registerNodeType<turtle_behaviors::VectorToMsg>("VectorToMsg");
     factory.registerNodeType<turtle_behaviors::ConsumeEnergy>("ConsumeEnergy");
     factory.registerNodeType<turtle_behaviors::RechargeEnergy>("RechargeEnergy");
+    factory.registerNodeType<turtle_behaviors::ArePosesEqual>("ArePosesEqual");
     return;
 }

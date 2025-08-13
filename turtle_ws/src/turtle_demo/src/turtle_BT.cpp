@@ -12,8 +12,8 @@
 #include <behaviortree_cpp/decorators/retry_node.h>
 #include <behaviortree_cpp/xml_parsing.h>
 #include <behaviortree_cpp/loggers/groot2_publisher.h>
-#include <dynamic_selector_ros2/dynamic_selector.h>
-#include <dynamic_selector_ros2/input_data_node.h>
+#include <dynamic_selector/dynamic_selector.h>
+#include <dynamic_selector/input_data_node.h>
 #include <chrono>
 #include <iostream>
 #include <fstream>
@@ -99,7 +99,7 @@ class TurtleInputNode : public InputDataNode {
 
             // Input 5: Energy
 
-            return {time_diff.count(), los_dist, target_center_distance, chaser_center_distance, energy};
+            return {time_diff.count(), los_dist, chaser_center_distance, energy};
         }
 
         bool equal_pose(PoseStamped pose_1, PoseStamped pose_2) {
@@ -146,17 +146,17 @@ int main(int argc, char** argv) {
     std::vector<double> max_inputs = {
         30.0,    // Time Since Last Spotted
         5.5,     // Line of Sight
-        5.5,     // Target Displacement
+        // 5.5,     // Target Displacement - not useful?
         5.5,     // Chaser Displacement
         100.0,   // Energy
         5.0,     // Scan Search Fails
         5.0,     // Patrol Search Fails
-        5.0,     // Rest Fails
+        1.0,     // Rest Fails
     };
     std::vector<std::vector<double>> weights = {
-        {-0.25, 0.2,  2.0,  0.0,  0.1, -0.25, 0.0, 0.0},
-        { 0.2,  0.0,  0.0,  0.2,  0.1,  0.0, -0.5, 0.0},
-        { 0.0,  0.0,  0.0,  0.0, -10,   0.0,  0.0, 0.0}
+        {-0.25,  0.20,  0.00,  0.10, -0.25,  0.00,  0.00},
+        { 0.20,  0.00,  0.20,  0.10,  0.00, -0.25,  0.00},
+        { 0.00,  0.00,  0.00, -1.00,  0.00,  0.00,  0.00}
     };
 
     // Register turtle behaviors
