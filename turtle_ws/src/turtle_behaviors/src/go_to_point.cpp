@@ -25,7 +25,6 @@ NodeStatus GoToPoint::onRunning() {
     static const double dist_threshold = 0.1;
     static const double scale_forward_rate = 1.0;
     static const double scale_rotation_rate = 2.0;
-    static const double max_turn = 0.2;
 
     geometry_msgs::msg::PoseStamped::SharedPtr target_pose, chaser_pose;
     getInput("target_pose", target_pose);
@@ -45,44 +44,52 @@ NodeStatus GoToPoint::onRunning() {
         return NodeStatus::SUCCESS;
     }
 
-    if (!rotated) {
-        // Compute target angle
-        double target_angle = atan2(
-            y_diff, x_diff
-        );
+    // Compute target angle
+    double target_angle = atan2(
+        y_diff, x_diff
+    );
 
-        // Compute current angle (Axis angle formula)
-        double chaser_angle;
-        double q_w = chaser_pose->pose.orientation.w;
-        double q_z = chaser_pose->pose.orientation.z;
-        if (q_z == 0) chaser_angle = 0;
-        else chaser_angle = 2 * acos(q_w) * q_z / fabs(q_z);  // Ranges from 0 to 2*pi
+    // Compute current angle (Axis angle formula)
+    double chaser_angle;
+    double q_w = chaser_pose->pose.orientation.w;
+    double q_z = chaser_pose->pose.orientation.z;
+    if (q_z == 0) chaser_angle = 0;
+    else chaser_angle = 2 * acos(q_w) * q_z / fabs(q_z);  // Ranges from 0 to 2*pi
 
-        // Get angle difference between chaser and target
-        double diff_angle  = target_angle - chaser_angle;
-        // If difference is >pi then direction is wrong
-        // Add or subtract 2pi to compensate
-        if (fabs(diff_angle) > M_PI) {
-            if (target_angle > 0) {
-                diff_angle = target_angle - chaser_angle - 2 * M_PI;
-            }
-            else {
-                diff_angle = target_angle - chaser_angle + 2 * M_PI;
-            }
+    // Get angle difference between chaser and target
+    double diff_angle  = target_angle - chaser_angle;
+    // If difference is >pi then direction is wrong
+    // Add or subtract 2pi to compensate
+    if (fabs(diff_angle) > M_PI) {
+        if (target_angle > 0) {
+            diff_angle = target_angle - chaser_angle - 2 * M_PI;
         }
+        else {
+            diff_angle = target_angle - chaser_angle + 2 * M_PI;
+        }
+    }
 
+    if (!rotated) {
         // Turn if angle difference is too great
         // Use trig to see if the end point will be within goal distance of target
         if ((fabs(diff_angle) > M_PI / 2) || (target_dist * fabs(std::tan(diff_angle)) > dist_threshold)) {
             chase_velocity.linear.x = 0;
-            chase_velocity.angular.z = scale_rotation_rate * std::max(fabs(diff_angle), max_turn) * diff_angle / fabs(diff_angle);
+            chase_velocity.angular.z = scale_rotation_rate * diff_angle / fabs(diff_angle);
         }
         // Remember when rotation is finished
         else rotated = true;
     }
 
-    // Go forward after finishing rotation
-    if (rotated) {
+    else {
+        std::cout << '[' << name() << "] " << "Diff angle: " << diff_angle << std::endl;
+        // If angle is > pi/2 after rotation, chaser has passed target
+        if (fabs(diff_angle) > M_PI / 2) {
+            std::cout << '[' << name() << "] " << "Passed by target." << std::endl;
+            setOutput("chase_velocity", chase_velocity);
+            return NodeStatus::SUCCESS;
+        }
+
+        // Go forward after finishing rotation
         chase_velocity.linear.x = scale_forward_rate;
         chase_velocity.angular.z = 0;
     }

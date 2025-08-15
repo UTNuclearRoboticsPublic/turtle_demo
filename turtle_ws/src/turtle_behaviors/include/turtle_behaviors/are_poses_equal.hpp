@@ -63,7 +63,7 @@ public:
 
       // Compare each element of position and orientation
       for (size_t i = 0; i < 7; i++) {
-        if (pose_1_array[i] - pose_2_array[i] > tol) return NodeStatus::FAILURE;
+        if (fabs(pose_1_array[i] - pose_2_array[i]) > tol) return NodeStatus::FAILURE;
       }
 
       return NodeStatus::SUCCESS;
