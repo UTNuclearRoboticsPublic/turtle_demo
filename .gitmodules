@@ -4,3 +4,6 @@
 [submodule "turtle_ws/src/nrg_behaviors"]
 	path = turtle_ws/src/nrg_behaviors
 	url = git@github.com:UTNuclearRobotics/nrg_behaviors.git
+[submodule "turtle_ws/src/dynamic_selector"]
+	path = turtle_ws/src/dynamic_selector
+	url = git@github.com:UTNuclearRobotics/dynamic_selector.git
