@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" project_name="Project">
+    <include path="turtle_tree_groot.xml"/>
+    <!-- Description of Node Models (used by Groot) -->
+    <TreeNodesModel>
+        <Action ID="AlwaysFailureNode" editable="true"/>
+        <Action ID="ChaseTarget" editable="true">
+            <input_port name="relative_pose"/>
+            <output_port name="chase_velocity"/>
+        </Action>
+        <Action ID="ConsumeEnergy" editable="true">
+            <input_port name="velocity"/>
+            <inout_port name="energy"/>
+        </Action>
+        <Control ID="DynamicSelector" editable="true">
+            <input_port name="input_data"/>
+            <input_port name="utility_threshold"/>
+            <input_port name="stability_threshold"/>
+            <output_port name="utilities"/>
+        </Control>
+        <Action ID="FindCorner" editable="true">
+            <output_port name="corner_pose"/>
+            <input_port name="radius"/>
+            <input_port name="chaser_pose"/>
+        </Action>
+        <Decorator ID="ForceFailureNode" editable="true"/>
+        <Decorator ID="ForceSuccessNode" editable="true"/>
+        <Action ID="GetCurrentPose" editable="true">
+            <input_port name="reference_frame"/>
+            <input_port name="target_frame"/>
+            <output_port name="pose"/>
+        </Action>
+        <Action ID="GoToPoint" editable="true">
+            <input_port name="target_pose"/>
+            <input_port name="chaser_pose"/>
+            <output_port name="chase_velocity"/>
+        </Action>
+        <Action ID="InputDataNode" editable="true">
+            <input_port name="last_known_pose"/>
+            <input_port name="chaser_pose"/>
+            <input_port name="energy"/>
+            <output_port name="data"/>
+        </Action>
+        <Action ID="PatrolSearch" editable="true">
+            <input_port name="chaser_pose"/>
+            <input_port name="radius"/>
+            <output_port name="chase_velocity"/>
+        </Action>
+        <Action ID="Print" editable="true">
+            <input_port name="message"/>
+        </Action>
+        <Action ID="PublishMessageToTopic" editable="true">
+            <input_port name="topic"/>
+            <input_port name="value"/>
+        </Action>
+        <Action ID="RechargeEnergy" editable="true">
+            <input_port name="max_energy"/>
+            <input_port name="energy_per_tick"/>
+            <inout_port name="energy"/>
+        </Action>
+        <Condition ID="RelativeAnglePositive" editable="true">
+            <input_port name="chaser_pose"/>
+            <input_port name="last_known_pose"/>
+        </Condition>
+        <Decorator ID="RetryNode" editable="true">
+            <input_port name="num_attempts"/>
+        </Decorator>
+        <Action ID="ScanSearch" editable="true">
+            <input_port name="relative_pose"/>
+            <input_port name="chaser_pose"/>
+            <input_port name="rotation_speed"/>
+            <output_port name="scan_velocity"/>
+        </Action>
+        <Action ID="SetBlackboardNode" editable="true">
+            <input_port name="value"/>
+            <input_port name="output_key"/>
+        </Action>
+        <Action ID="StopTurtle" editable="true">
+            <output_port name="zero_velocity"/>
+        </Action>
+        <Condition ID="TargetWithinRange" editable="true">
+            <input_port name="target_pose"/>
+            <input_port name="range"/>
+        </Condition>
+        <Action ID="TriggerService" editable="true">
+            <input_port name="service_name"/>
+        </Action>
+        <Action ID="VectorToMsg" editable="true">
+            <input_port name="vector"/>
+            <output_port name="msg"/>
+        </Action>
+    </TreeNodesModel>
+</root>

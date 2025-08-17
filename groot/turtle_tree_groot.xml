@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="Chase Nearby Target">
+    <ReactiveSequence name="Chase Nearby Target">
+      <SubTree ID="Proximity Check"/>
+      <GetCurrentPose reference_frame="world"
+                      target_frame="turtle1"
+                      pose="{last_known_pose}"/>
+      <GetCurrentPose reference_frame="turtle2"
+                      target_frame="turtle1"
+                      pose="{relative_pose}"/>
+      <ReactiveFallback>
+        <SubTree ID="Move Turtle"
+                 velocity="{chase_velocity}"
+                 energy="{turtle2_energy}"/>
+        <RechargeEnergy max_energy="100"
+                        energy_per_tick="0.5"
+                        energy="{turtle2_energy}"/>
+      </ReactiveFallback>
+      <ChaseTarget relative_pose="{relative_pose}"
+                   chase_velocity="{chase_velocity}"/>
+    </ReactiveSequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Get Current State">
+    <Sequence>
+      <GetCurrentPose reference_frame="world"
+                      target_frame="turtle2"
+                      pose="{chaser_pose}"/>
+      <GetCurrentPose reference_frame="turtle2"
+                      target_frame="turtle1"
+                      pose="{relative_pose}"/>
+      <InputDataNode last_known_pose="{last_known_pose}"
+                     chaser_pose="{chaser_pose}"
+                     energy="{turtle2_energy}"
+                     data="{data}"/>
+      <ForceSuccessNode>
+        <Sequence>
+          <VectorToMsg vector="{data}"
+                       msg="{data_msg}"/>
+          <PublishMessageToTopic topic="/input_data"
+                                 value="{data_msg}"/>
+          <VectorToMsg vector="{utils}"
+                       msg="{utils_msg}"/>
+          <PublishMessageToTopic topic="/utilities"
+                                 value="{utils_msg}"/>
+        </Sequence>
+      </ForceSuccessNode>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="MainTree">
+    <Sequence>
+      <SubTree ID="Setup"
+               _autoremap="false"/>
+      <RetryNode num_attempts="-1">
+        <Fallback name="Main Loop">
+          <Sequence>
+            <SubTree ID="Proximity Check"/>
+            <TriggerService name="Target Found"
+                            service_name="/target_seen"/>
+            <SubTree ID="Chase Nearby Target"/>
+          </Sequence>
+          <Sequence>
+            <TriggerService name="Target Lost"
+                            service_name="/target_lost"/>
+            <ReactiveSequence>
+              <Inverter>
+                <SubTree ID="Proximity Check"/>
+              </Inverter>
+              <SubTree ID="Get Current State"/>
+              <DynamicSelector name="Target Out of Range"
+                               input_data="{data}"
+                               utility_threshold="0.1"
+                               stability_threshold="0.1"
+                               utilities="{utils}">
+                <SubTree ID="Scan Search"
+                         chaser_pose="{chaser_pose}"
+                         relative_pose="{relative_pose}"
+                         last_known_pose="{last_known_pose}"
+                         energy="{turtle2_energy}"/>
+                <SubTree ID="Patrol Search"
+                         chaser_pose="{chaser_pose}"
+                         energy="{turtle2_energy}"/>
+                <SubTree ID="Rest"
+                         energy="{turtle2_energy}"/>
+              </DynamicSelector>
+            </ReactiveSequence>
+          </Sequence>
+        </Fallback>
+      </RetryNode>
+      <StopTurtle zero_velocity="{velocity}"/>
+      <SubTree ID="Move Turtle"
+               velocity="{velocity}"
+               energy="{energy}"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Move Turtle">
+    <Fallback>
+      <Sequence>
+        <ConsumeEnergy velocity="{velocity}"
+                       energy="{energy}"/>
+        <ForceSuccessNode>
+          <PublishMessageToTopic topic="/turtle2/cmd_vel"
+                                 value="{velocity}"/>
+        </ForceSuccessNode>
+      </Sequence>
+      <Sequence>
+        <StopTurtle zero_velocity="{velocity}"/>
+        <PublishMessageToTopic topic="/turtle2/cmd_vel"
+                               value="{velocity}"/>
+        <AlwaysFailureNode/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Patrol Search">
+    <ReactiveSequence>
+      <Inverter>
+        <SubTree ID="Proximity Check"/>
+      </Inverter>
+      <SubTree ID="Move Turtle"
+               velocity="{velocity}"
+               energy="{energy}"/>
+      <Sequence>
+        <FindCorner corner_pose="{corner_pose}"
+                    radius="2.0"
+                    chaser_pose="{chaser_pose}"/>
+        <GoToPoint target_pose="{corner_pose}"
+                   chaser_pose="{chaser_pose}"
+                   chase_velocity="{velocity}"/>
+        <StopTurtle zero_velocity="{velocity}"/>
+        <PatrolSearch chaser_pose="{chaser_pose}"
+                      radius="2.0"
+                      chase_velocity="{velocity}"/>
+      </Sequence>
+    </ReactiveSequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Proximity Check">
+    <Sequence>
+      <GetCurrentPose reference_frame="turtle2"
+                      target_frame="turtle1"
+                      pose="{relative_pose}"/>
+      <TargetWithinRange target_pose="{relative_pose}"
+                         range="2.0"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Rest">
+    <Sequence>
+      <Print message="Beginning rest"/>
+      <StopTurtle zero_velocity="{velocity}"/>
+      <SubTree ID="Move Turtle"
+               velocity="{velocity}"
+               energy="{energy}"/>
+      <ReactiveSequence>
+        <Print message="Rest reactive sequence"/>
+        <Inverter>
+          <SubTree ID="Proximity Check"/>
+        </Inverter>
+        <RechargeEnergy max_energy="100"
+                        energy_per_tick="0.5"
+                        energy="{energy}"/>
+      </ReactiveSequence>
+      <Print message="Ending rest"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Scan Search">
+    <ReactiveSequence>
+      <Inverter>
+        <SubTree ID="Proximity Check"/>
+      </Inverter>
+      <SubTree ID="Move Turtle"
+               velocity="{velocity}"
+               energy="{energy}"/>
+      <Sequence>
+        <GoToPoint target_pose="{center_pose}"
+                   chaser_pose="{chaser_pose}"
+                   chase_velocity="{velocity}"/>
+        <KeepRunningUntilFailure>
+          <Sequence>
+            <IfThenElse>
+              <RelativeAnglePositive chaser_pose="{chaser_pose}"
+                                     last_known_pose="{last_known_pose}"/>
+              <ScanSearch relative_pose="{relative_pose}"
+                          chaser_pose="{chaser_pose}"
+                          rotation_speed="-1.0"
+                          scan_velocity="{velocity}"/>
+              <ScanSearch relative_pose="{relative_pose}"
+                          chaser_pose="{chaser_pose}"
+                          rotation_speed="1.0"
+                          scan_velocity="{velocity}"/>
+            </IfThenElse>
+            <StopTurtle zero_velocity="{velocity}"/>
+            <GetCurrentPose reference_frame="world"
+                            target_frame="turtle1"
+                            pose="{last_known_pose}"/>
+            <GoToPoint target_pose="{last_known_pose}"
+                       chaser_pose="{chaser_pose}"
+                       chase_velocity="{velocity}"/>
+            <StopTurtle zero_velocity="{velocity}"/>
+          </Sequence>
+        </KeepRunningUntilFailure>
+      </Sequence>
+    </ReactiveSequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Setup">
+    <Sequence>
+      <SetBlackboardNode value="100"
+                         output_key="turtle2_energy"/>
+      <GetCurrentPose reference_frame="world"
+                      target_frame="turtle1"
+                      pose="{last_known_pose}"/>
+      <GetCurrentPose reference_frame="world"
+                      target_frame="turtle1"
+                      pose="{center_pose}"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Subtree">
+    <GetCurrentPose reference_frame="world"
+                    target_frame="turtle2"
+                    pose="{chaser_pose}"/>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Update Inputs">
+    <Sequence>
+      <GetCurrentPose reference_frame="world"
+                      target_frame="turtle2"
+                      pose="{chaser_pose}"/>
+      <GetCurrentPose reference_frame="turtle2"
+                      target_frame="turtle1"
+                      pose="{relative_pose}"/>
+      <InputDataNode last_known_pose="{last_known_pose}"
+                     chaser_pose="{chaser_pose}"
+                     energy="{turtle2_energy}"
+                     data="{data}"/>
+      <ForceSuccessNode>
+        <Sequence>
+          <VectorToMsg vector="{data}"
+                       msg="{data_msg}"/>
+          <PublishMessageToTopic topic="/input_data"
+                                 value="{data_msg}"/>
+          <VectorToMsg vector="{utils}"
+                       msg="{utils_msg}"/>
+          <PublishMessageToTopic topic="/utilities"
+                                 value="{utils_msg}"/>
+        </Sequence>
+      </ForceSuccessNode>
+    </Sequence>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="AlwaysFailureNode"
+            editable="true"/>
+    <Action ID="ChaseTarget"
+            editable="true">
+      <input_port name="relative_pose"/>
+      <output_port name="chase_velocity"/>
+    </Action>
+    <Action ID="ConsumeEnergy"
+            editable="true">
+      <input_port name="velocity"/>
+      <inout_port name="energy"/>
+    </Action>
+    <Control ID="DynamicSelector"
+             editable="true">
+      <input_port name="input_data"/>
+      <input_port name="utility_threshold"/>
+      <input_port name="stability_threshold"/>
+      <output_port name="utilities"/>
+    </Control>
+    <Action ID="FindCorner"
+            editable="true">
+      <output_port name="corner_pose"/>
+      <input_port name="radius"/>
+      <input_port name="chaser_pose"/>
+    </Action>
+    <Decorator ID="ForceSuccessNode"
+               editable="true"/>
+    <Action ID="GetCurrentPose"
+            editable="true">
+      <input_port name="reference_frame"/>
+      <input_port name="target_frame"/>
+      <output_port name="pose"/>
+    </Action>
+    <Action ID="GoToPoint"
+            editable="true">
+      <input_port name="target_pose"/>
+      <input_port name="chaser_pose"/>
+      <output_port name="chase_velocity"/>
+    </Action>
+    <Action ID="InputDataNode"
+            editable="true">
+      <input_port name="last_known_pose"/>
+      <input_port name="chaser_pose"/>
+      <input_port name="energy"/>
+      <output_port name="data"/>
+    </Action>
+    <Action ID="PatrolSearch"
+            editable="true">
+      <input_port name="chaser_pose"/>
+      <input_port name="radius"/>
+      <output_port name="chase_velocity"/>
+    </Action>
+    <Action ID="Print"
+            editable="true">
+      <input_port name="message"/>
+    </Action>
+    <Action ID="PublishMessageToTopic"
+            editable="true">
+      <input_port name="topic"/>
+      <input_port name="value"/>
+    </Action>
+    <Action ID="RechargeEnergy"
+            editable="true">
+      <input_port name="max_energy"/>
+      <input_port name="energy_per_tick"/>
+      <inout_port name="energy"/>
+    </Action>
+    <Condition ID="RelativeAnglePositive"
+               editable="true">
+      <input_port name="chaser_pose"/>
+      <input_port name="last_known_pose"/>
+    </Condition>
+    <Decorator ID="RetryNode"
+               editable="true">
+      <input_port name="num_attempts"/>
+    </Decorator>
+    <Action ID="ScanSearch"
+            editable="true">
+      <input_port name="relative_pose"/>
+      <input_port name="chaser_pose"/>
+      <input_port name="rotation_speed"/>
+      <output_port name="scan_velocity"/>
+    </Action>
+    <Action ID="SetBlackboardNode"
+            editable="true">
+      <input_port name="value"/>
+      <input_port name="output_key"/>
+    </Action>
+    <Action ID="StopTurtle"
+            editable="true">
+      <output_port name="zero_velocity"/>
+    </Action>
+    <Condition ID="TargetWithinRange"
+               editable="true">
+      <input_port name="target_pose"/>
+      <input_port name="range"/>
+    </Condition>
+    <Action ID="TriggerService"
+            editable="true">
+      <input_port name="service_name"/>
+    </Action>
+    <Action ID="VectorToMsg"
+            editable="true">
+      <input_port name="vector"/>
+      <output_port name="msg"/>
+    </Action>
+  </TreeNodesModel>
+
+</root>

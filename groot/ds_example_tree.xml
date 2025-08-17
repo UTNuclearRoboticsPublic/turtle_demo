@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="Get Parts Complex">
+    <Fallback name="Get Parts">
+      <Sequence>
+        <Fallback>
+          <ResupplySoon/>
+          <Sequence>
+            <HumanPresent/>
+            <Fallback>
+              <HumanOnSchedule/>
+              <HighTraffic/>
+            </Fallback>
+            <RequestParts/>
+          </Sequence>
+        </Fallback>
+        <WaitForParts/>
+      </Sequence>
+      <Sequence>
+        <Fallback>
+          <FullBattery/>
+          <RechargeBattery/>
+        </Fallback>
+        <GoToStorage/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Get Parts Simple">
+    <Fallback name="Get Parts">
+      <Sequence>
+        <HumanPresent/>
+        <RequestParts/>
+        <WaitForParts/>
+      </Sequence>
+      <Sequence>
+        <Fallback>
+          <FullBattery/>
+          <RechargeBattery/>
+        </Fallback>
+        <GoToStorage/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Main Tree">
+    <Repeat num_cycles="-1">
+      <Sequence>
+        <Fallback>
+          <HasParts/>
+          <SubTree ID="Get Parts Simple"/>
+        </Fallback>
+        <AttachPart/>
+      </Sequence>
+    </Repeat>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="AttachPart"
+            editable="true"/>
+    <Condition ID="FullBattery"
+               editable="true"/>
+    <Action ID="GoToStorage"
+            editable="true"/>
+    <Condition ID="HasParts"
+               editable="true"/>
+    <Condition ID="HighTraffic"
+               editable="true"/>
+    <Condition ID="HumanOnSchedule"
+               editable="true"/>
+    <Condition ID="HumanPresent"
+               editable="true"/>
+    <Action ID="RechargeBattery"
+            editable="true"/>
+    <Action ID="RequestParts"
+            editable="true"/>
+    <Condition ID="ResupplySoon"
+               editable="true"/>
+    <Action ID="WaitForParts"
+            editable="true"/>
+  </TreeNodesModel>
+
+</root>

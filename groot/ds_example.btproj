@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" project_name="ds_example">
+    <include path="ds_example_tree.xml"/>
+    <!-- Description of Node Models (used by Groot) -->
+    <TreeNodesModel>
+        <Action ID="AttachPart" editable="true"/>
+        <Condition ID="FullBattery" editable="true"/>
+        <Action ID="GoToStorage" editable="true"/>
+        <Condition ID="HasParts" editable="true"/>
+        <Condition ID="HighTraffic" editable="true"/>
+        <Condition ID="HumanOnSchedule" editable="true"/>
+        <Condition ID="HumanPresent" editable="true"/>
+        <Action ID="RechargeBattery" editable="true"/>
+        <Action ID="RequestParts" editable="true"/>
+        <Condition ID="ResupplySoon" editable="true"/>
+        <Action ID="WaitForParts" editable="true"/>
+    </TreeNodesModel>
+</root>
