@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4">
+  <BehaviorTree ID="Get Parts">
+    <Fallback name="Get Parts">
+      <Sequence>
+        <HumanPresent/>
+        <RequestParts/>
+        <WaitForParts/>
+      </Sequence>
+      <Sequence>
+        <Fallback>
+          <FullBattery/>
+          <RechargeBattery/>
+        </Fallback>
+        <GoToStorage/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
   <BehaviorTree ID="Get Parts Complex">
     <Fallback name="Get Parts">
       <Sequence>
@@ -26,21 +43,25 @@
     </Fallback>
   </BehaviorTree>
 
-  <BehaviorTree ID="Get Parts Simple">
-    <Fallback name="Get Parts">
-      <Sequence>
-        <HumanPresent/>
-        <RequestParts/>
-        <WaitForParts/>
-      </Sequence>
-      <Sequence>
-        <Fallback>
-          <FullBattery/>
+  <BehaviorTree ID="Get Parts DS">
+    <ReactiveSequence name="Get Parts">
+      <InputDataNode data="{data}"/>
+      <DynamicSelector data="{data}">
+        <Sequence name="Request Parts">
+          <HumanPresent/>
+          <RequestParts/>
+          <WaitForParts/>
+        </Sequence>
+        <Sequence name="Recharge Battery">
           <RechargeBattery/>
-        </Fallback>
-        <GoToStorage/>
-      </Sequence>
-    </Fallback>
+          <WaitForParts/>
+        </Sequence>
+        <Sequence name="Go To Storage">
+          <RechargeBattery/>
+          <GoToStorage/>
+        </Sequence>
+      </DynamicSelector>
+    </ReactiveSequence>
   </BehaviorTree>
 
   <BehaviorTree ID="Main Tree">
@@ -48,7 +69,7 @@
       <Sequence>
         <Fallback>
           <HasParts/>
-          <SubTree ID="Get Parts Simple"/>
+          <SubTree ID="Get Parts"/>
         </Fallback>
         <AttachPart/>
       </Sequence>
@@ -59,6 +80,10 @@
   <TreeNodesModel>
     <Action ID="AttachPart"
             editable="true"/>
+    <Control ID="DynamicSelector"
+             editable="true">
+      <input_port name="data"/>
+    </Control>
     <Condition ID="FullBattery"
                editable="true"/>
     <Action ID="GoToStorage"
@@ -71,6 +96,10 @@
                editable="true"/>
     <Condition ID="HumanPresent"
                editable="true"/>
+    <Action ID="InputDataNode"
+            editable="true">
+      <output_port name="data"/>
+    </Action>
     <Action ID="RechargeBattery"
             editable="true"/>
     <Action ID="RequestParts"
