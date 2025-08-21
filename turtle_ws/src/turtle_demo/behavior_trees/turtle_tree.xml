@@ -11,6 +11,7 @@
           <Inverter>
             <ArePosesEqual pose_1="{last_known_pose}" pose_2="{target_pose}"/>
           </Inverter>
+          <TriggerService service_name="/start_monitor"/>
         </Sequence>
       </RetryNode>
       <RetryNode num_attempts="-1">
@@ -55,8 +56,9 @@
           </Sequence>
         </Fallback>
       </RetryNode>
+      <TriggerService service_name="/end_monitor"/>
       <StopTurtle zero_velocity="{velocity}"/>
-      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{turtle2_energy}"/>
     </Sequence>
   </BehaviorTree>
 

@@ -38,6 +38,9 @@ ament_target_dependencies(turtle_listener ${THIS_PACKAGE_DEPS})
 add_executable(turtle_service_handler src/turtle_service_handler.cpp)
 ament_target_dependencies(turtle_service_handler ${THIS_PACKAGE_DEPS})
 
+add_executable(turtle_monitor src/turtle_monitor.cpp)
+ament_target_dependencies(turtle_monitor ${THIS_PACKAGE_DEPS})
+
 add_executable(turtle_BT src/turtle_BT.cpp)
 ament_target_dependencies(turtle_BT ${THIS_PACKAGE_DEPS})
 
@@ -65,6 +68,7 @@ install(TARGETS
     turtle_listener
     turtle_BT
     turtle_service_handler
+    turtle_monitor
     DESTINATION lib/${PROJECT_NAME}
 )
 

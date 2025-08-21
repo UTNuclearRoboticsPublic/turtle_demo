@@ -81,7 +81,7 @@ NodeStatus GoToPoint::onRunning() {
     }
 
     else {
-        std::cout << '[' << name() << "] " << "Diff angle: " << diff_angle << std::endl;
+        // std::cout << '[' << name() << "] " << "Diff angle: " << diff_angle << std::endl;
         // If angle is > pi/2 after rotation, chaser has passed target
         if (fabs(diff_angle) > M_PI / 2) {
             std::cout << '[' << name() << "] " << "Passed by target." << std::endl;

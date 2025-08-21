@@ -47,6 +47,13 @@
     <ReactiveSequence name="Get Parts">
       <InputDataNode data="{data}"/>
       <DynamicSelector data="{data}">
+        <Sequence name="Go To Storage">
+          <Fallback>
+            <FullBattery/>
+            <RechargeBattery/>
+          </Fallback>
+          <GoToStorage/>
+        </Sequence>
         <Sequence name="Request Parts">
           <HumanPresent/>
           <RequestParts/>
@@ -55,10 +62,6 @@
         <Sequence name="Recharge Battery">
           <RechargeBattery/>
           <WaitForParts/>
-        </Sequence>
-        <Sequence name="Go To Storage">
-          <RechargeBattery/>
-          <GoToStorage/>
         </Sequence>
       </DynamicSelector>
     </ReactiveSequence>
