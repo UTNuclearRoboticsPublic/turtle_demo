@@ -11,8 +11,6 @@ public:
     }
 
     rclcpp::Client<turtlesim_ds::srv::TeleportAbsolute>::SharedPtr teleport_client_{nullptr};
-
-private:
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr twist_pub_{nullptr};
 };
 
@@ -25,11 +23,29 @@ int main(int argc, char* argv[]) {
     teleport_req->x = 9.0;
     teleport_req->y = 5.5;
     teleport_req->theta = 1.571;
-    autopilot->teleport_client_->wait_for_service(std::chrono::seconds(2));
-    std::cout << "Sending teleport request..." << std::endl;
+    RCLCPP_INFO(autopilot->get_logger(), "Waiting for teleport service...");
+    if (!autopilot->teleport_client_->wait_for_service(std::chrono::seconds(2))) {
+        RCLCPP_ERROR(autopilot->get_logger(), "Timed out waiting for service.");
+        return 1;
+    }
+    RCLCPP_INFO(autopilot->get_logger(), "Sending teleport request...");
     auto teleport_future = autopilot->teleport_client_->async_send_request(teleport_req);
     auto teleport_status = rclcpp::spin_until_future_complete(autopilot, teleport_future, std::chrono::milliseconds(10));
-    std::cout << to_string(teleport_status) << std::endl;
+    if (teleport_status == rclcpp::FutureReturnCode::SUCCESS) {
+        RCLCPP_INFO(autopilot->get_logger(), "Teleport successful.");
+    }
+    else {
+        RCLCPP_ERROR(autopilot->get_logger(), "Teleport failed");
+    }
+
+    // Publish constant twist
+    auto twist_msg = std::make_shared<geometry_msgs::msg::Twist>();
+    twist_msg->linear.x = 1.0;
+    twist_msg->angular.z = 0.26;
+    RCLCPP_INFO(autopilot->get_logger(), "Publishing constant twist...");
+    while (rclcpp::ok()) {
+        autopilot->twist_pub_->publish(*twist_msg);
+    }
     
     return 0;
 }
