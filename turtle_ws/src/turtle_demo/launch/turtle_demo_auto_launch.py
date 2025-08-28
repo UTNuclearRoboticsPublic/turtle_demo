@@ -48,7 +48,10 @@ def generate_launch_description():
         Node(
             package='turtle_demo',
             executable='turtle_monitor',
-            name='turtle_monitor'
+            name='turtle_monitor',
+            parameters=[
+                {'csv_path' : '/tmp/turtle_auto.csv'}
+            ]
         ),
         Node(
             package='turtle_demo',
