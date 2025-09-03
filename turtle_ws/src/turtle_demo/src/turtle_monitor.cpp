@@ -15,6 +15,8 @@ public:
             std::bind(&TurtleMonitor::startMonitorCallback, this, std::placeholders::_1, std::placeholders::_2));
         end_monitor_ = this->create_service<std_srvs::srv::Trigger>("end_monitor",
             std::bind(&TurtleMonitor::endMonitorCallback, this, std::placeholders::_1, std::placeholders::_2));
+        log_sighting_ = this->create_service<std_srvs::srv::Trigger>("log_sighting",
+            std::bind(&TurtleMonitor::logSightingCallback, this, std::placeholders::_1, std::placeholders::_2));
 
         // Timer
         timer_ = this->create_wall_timer(std::chrono::duration<double>(0.01), std::bind(&TurtleMonitor::timerCallback, this));
@@ -30,6 +32,7 @@ private:
     void startMonitorCallback(std_srvs::srv::Trigger::Request::ConstSharedPtr /*req*/,
         std_srvs::srv::Trigger::Response::SharedPtr resp) {
         start_time_ = std::chrono::system_clock::now();
+        last_seen_time_ = std::chrono::system_clock::now();
         RCLCPP_INFO(this->get_logger(), "Beginning timer.");
         resp->success = true;
     }
@@ -48,10 +51,26 @@ private:
         // Get average distance between turtles
         float avg_dist = total_distance_ / dist_count_;
 
+        // Get average sighting interval
+        float avg_sighting_interval = time_span.count() / sighting_count_;
+
         // Write info to CSV file
         std::ofstream csv(csv_path_, std::ios::app);
-        csv << start_ctime << ',' << time_span.count() << ',' << avg_dist << '\n';
+        csv << start_ctime << ',' << time_span.count() << ',' << avg_dist << ',' << avg_sighting_interval << ',' << max_sighting_interval_.count() <<'\n';
         csv.close();
+
+        resp->success = true;
+    }
+
+    void logSightingCallback(std_srvs::srv::Trigger::Request::ConstSharedPtr /*req*/,
+        std_srvs::srv::Trigger::Response::SharedPtr resp) {
+        // Increment sighting count by 1
+        sighting_count_++;
+
+        // Get interval since last sighting
+        std::chrono::duration<float, std::chrono::seconds::period> sighting_interval =
+            std::chrono::system_clock::now() - start_time_;
+        if (sighting_interval > max_sighting_interval_) max_sighting_interval_ = sighting_interval;
 
         resp->success = true;
     }
@@ -75,12 +94,16 @@ private:
 
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr start_monitor_{nullptr};
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr end_monitor_{nullptr};
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr log_sighting_{nullptr};
     rclcpp::TimerBase::SharedPtr timer_{nullptr};
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
     float total_distance_ = 0;
     size_t dist_count_ = 0;
+    size_t sighting_count_ = 0;
     std::chrono::time_point<std::chrono::system_clock> start_time_;
+    std::chrono::time_point<std::chrono::system_clock> last_seen_time_;
+    std::chrono::duration<float, std::chrono::seconds::period> max_sighting_interval_ = std::chrono::seconds(0);
     std::string csv_path_;
 };
 
