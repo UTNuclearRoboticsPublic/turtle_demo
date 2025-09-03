@@ -23,7 +23,7 @@ NodeStatus GoToPoint::onStart() {
 
 NodeStatus GoToPoint::onRunning() {
     static const double dist_threshold = 0.1;
-    static const double scale_forward_rate = 1.0;
+    static const double scale_forward_rate = 1.5;
     static const double scale_rotation_rate = 2.0;
 
     geometry_msgs::msg::PoseStamped::SharedPtr target_pose, chaser_pose;

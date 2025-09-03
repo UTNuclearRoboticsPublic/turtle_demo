@@ -1,5 +1,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/twist.hpp>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 
 #include "turtlesim_ds/srv/teleport_absolute.hpp"
 
@@ -8,10 +10,16 @@ public:
     TurtleAutopilot(): Node("turtle_autopilot") {
         teleport_client_ = this->create_client<turtlesim_ds::srv::TeleportAbsolute>("turtle1/teleport_absolute");
         twist_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("turtle1/cmd_vel", 1);
+
+        // TF listener
+        tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+        tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
     }
 
     rclcpp::Client<turtlesim_ds::srv::TeleportAbsolute>::SharedPtr teleport_client_{nullptr};
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr twist_pub_{nullptr};
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+    std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 };
 
 int main(int argc, char* argv[]) {
@@ -36,6 +44,12 @@ int main(int argc, char* argv[]) {
     }
     else {
         RCLCPP_ERROR(autopilot->get_logger(), "Teleport failed");
+    }
+
+    // Wait for turtle2 to spawn
+    RCLCPP_INFO(autopilot->get_logger(), "Waiting for turtle2 to spawn...");
+    while (!autopilot->tf_buffer_->canTransform("turtle1", "turtle2", tf2::TimePointZero )) {
+        rclcpp::spin_some(autopilot);
     }
 
     // Publish constant twist

@@ -55,7 +55,9 @@ private:
         float avg_sighting_interval = time_span.count() / sighting_count_;
 
         // Write info to CSV file
+        bool new_file = !rcpputils::fs::exists(csv_path_);
         std::ofstream csv(csv_path_, std::ios::app);
+        if (new_file) csv << "Start Time, Time Span, Average Distance, Average Sighting Interval, Max Sighting Interval\n";
         csv << start_ctime << ',' << time_span.count() << ',' << avg_dist << ',' << avg_sighting_interval << ',' << max_sighting_interval_.count() <<'\n';
         csv.close();
 
@@ -69,8 +71,9 @@ private:
 
         // Get interval since last sighting
         std::chrono::duration<float, std::chrono::seconds::period> sighting_interval =
-            std::chrono::system_clock::now() - start_time_;
+            std::chrono::system_clock::now() - last_seen_time_;
         if (sighting_interval > max_sighting_interval_) max_sighting_interval_ = sighting_interval;
+        last_seen_time_ = std::chrono::system_clock::now();
 
         resp->success = true;
     }
