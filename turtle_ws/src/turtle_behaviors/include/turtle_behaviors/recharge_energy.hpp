@@ -1,10 +1,11 @@
-#include <geometry_msgs/msg/twist.h>
+#include <std_msgs/msg/float64.hpp>
 #include <behaviortree_cpp/action_node.h>
 
 using BT::NodeConfig;
 using BT::NodeStatus;
 using BT::InputPort;
 using BT::BidirectionalPort;
+using BT::OutputPort;
 using BT::PortsList;
 
 namespace turtle_behaviors {
@@ -18,7 +19,8 @@ public:
       return {
         InputPort<double>("max_energy", "Max energy of turtle"),
         InputPort<double>("energy_per_tick", "Energy gained per tick of this behavior"),
-        BidirectionalPort<double>("energy", "Current energy")
+        BidirectionalPort<double>("energy", "Current energy"),
+        OutputPort<std_msgs::msg::Float64>("energy_msg", "Current energy as a ROS2 message")
       };
     }
 

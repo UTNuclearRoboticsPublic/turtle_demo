@@ -3,6 +3,7 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 #include <std_srvs/srv/trigger.hpp>
+#include <std_msgs/msg/float64.hpp>
 
 class TurtleMonitor : public rclcpp::Node {
 public:
@@ -17,6 +18,10 @@ public:
             std::bind(&TurtleMonitor::endMonitorCallback, this, std::placeholders::_1, std::placeholders::_2));
         log_sighting_ = this->create_service<std_srvs::srv::Trigger>("log_sighting",
             std::bind(&TurtleMonitor::logSightingCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+        // Subscribers
+        energy_sub_ = this->create_subscription<std_msgs::msg::Float64>("turtle_energy", 10,
+            std::bind(&TurtleMonitor::energyCallback, this, std::placeholders::_1));
 
         // Timer
         timer_ = this->create_wall_timer(std::chrono::duration<double>(0.01), std::bind(&TurtleMonitor::timerCallback, this));
@@ -51,14 +56,11 @@ private:
         // Get average distance between turtles
         float avg_dist = total_distance_ / dist_count_;
 
-        // Get average sighting interval
-        float avg_sighting_interval = time_span.count() / sighting_count_;
-
         // Write info to CSV file
         bool new_file = !rcpputils::fs::exists(csv_path_);
         std::ofstream csv(csv_path_, std::ios::app);
-        if (new_file) csv << "Start Time, Time Span, Average Distance, Average Sighting Interval, Max Sighting Interval\n";
-        csv << start_ctime << ',' << time_span.count() << ',' << avg_dist << ',' << avg_sighting_interval << ',' << max_sighting_interval_.count() <<'\n';
+        if (new_file) csv << "Start Time, Time Span, Average Distance, Sighting Count, Max Sighting Interval, Energy Spent\n";
+        csv << start_ctime << ',' << time_span.count() << ',' << avg_dist << ',' << sighting_count_ << ',' << max_sighting_interval_.count() << ',' << energy_spent_ << '\n';
         csv.close();
 
         resp->success = true;
@@ -78,10 +80,17 @@ private:
         resp->success = true;
     }
 
+    void energyCallback(const std_msgs::msg::Float64 energy) {
+        float energy_diff = last_energy_ - energy.data;
+        if (energy_diff > 0) energy_spent_ += energy_diff;
+        last_energy_ = energy.data;
+    }
+
     void timerCallback() {
         // Wait for turtles to start moving
         // Get distance between turtles
-        if (tf_buffer_->canTransform("turtle1", "turtle2", tf2::TimePointZero)) {
+        std::string* err_string = new std::string;
+        if (tf_buffer_->canTransform("turtle1", "turtle2", tf2::TimePointZero, tf2::durationFromSec(1), err_string)) {
             const geometry_msgs::msg::TransformStamped tf = tf_buffer_->lookupTransform(
                 "turtle1", "turtle2", tf2::TimePointZero
             );
@@ -98,10 +107,13 @@ private:
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr start_monitor_{nullptr};
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr end_monitor_{nullptr};
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr log_sighting_{nullptr};
+    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr energy_sub_{nullptr};
     rclcpp::TimerBase::SharedPtr timer_{nullptr};
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
     float total_distance_ = 0;
+    float last_energy_ = 0;
+    float energy_spent_ = 0;
     size_t dist_count_ = 0;
     size_t sighting_count_ = 0;
     std::chrono::time_point<std::chrono::system_clock> start_time_;

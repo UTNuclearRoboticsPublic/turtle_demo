@@ -23,12 +23,16 @@ public:
 };
 
 int main(int argc, char* argv[]) {
+    const float x_speed = 1.0;
+    const float z_speed = 0.25;
+    const float speed_scale = 1.0;
+
     rclcpp::init(argc, argv);
     auto autopilot = std::make_shared<TurtleAutopilot>();
 
     // Call teleport service
     auto teleport_req = std::make_shared<turtlesim_ds::srv::TeleportAbsolute::Request>();
-    teleport_req->x = 9.0;
+    teleport_req->x = 9.5;
     teleport_req->y = 5.5;
     teleport_req->theta = 1.571;
     RCLCPP_INFO(autopilot->get_logger(), "Waiting for teleport service...");
@@ -48,14 +52,15 @@ int main(int argc, char* argv[]) {
 
     // Wait for turtle2 to spawn
     RCLCPP_INFO(autopilot->get_logger(), "Waiting for turtle2 to spawn...");
-    while (!autopilot->tf_buffer_->canTransform("turtle1", "turtle2", tf2::TimePointZero )) {
+    std::string* err_string = new std::string;
+    while (!autopilot->tf_buffer_->canTransform("turtle1", "turtle2", tf2::TimePointZero, tf2::durationFromSec(1), err_string)) {
         rclcpp::spin_some(autopilot);
     }
 
     // Publish constant twist
     auto twist_msg = std::make_shared<geometry_msgs::msg::Twist>();
-    twist_msg->linear.x = 1.0;
-    twist_msg->angular.z = 0.26;
+    twist_msg->linear.x = x_speed * speed_scale;
+    twist_msg->angular.z = z_speed * speed_scale;
     RCLCPP_INFO(autopilot->get_logger(), "Publishing constant twist...");
     while (rclcpp::ok()) {
         autopilot->twist_pub_->publish(*twist_msg);

@@ -34,7 +34,12 @@ NodeStatus RechargeEnergy::onRunning() {
     double new_energy = std::min(energy + energy_per_tick, max_energy);
     // std::cout << '[' << name() << "] " << "New energy: " << new_energy << std::endl;
 
+    std_msgs::msg::Float64 energy_msg;
+    energy_msg.data = new_energy;
+
     setOutput("energy", new_energy);
+    setOutput("energy_msg", energy_msg);
+
     if (new_energy >= max_energy) {
         std::cout << '[' << name() << "] " << "Fully charged." << std::endl;
         return NodeStatus::SUCCESS;

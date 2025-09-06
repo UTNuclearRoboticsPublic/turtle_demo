@@ -50,7 +50,7 @@ def generate_launch_description():
             executable='turtle_monitor',
             name='turtle_monitor',
             parameters=[
-                {'csv_path' : '/tmp/turtle_auto.csv'}
+                {'csv_path' : '/home/sheneman/thesis/turtle_auto.csv'}
             ]
         ),
         Node(

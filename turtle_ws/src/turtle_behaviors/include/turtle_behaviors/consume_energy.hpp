@@ -1,4 +1,5 @@
-#include <geometry_msgs/msg/twist.h>
+#include <geometry_msgs/msg/twist.hpp>
+#include <std_msgs/msg/float64.hpp>
 #include <behaviortree_cpp/action_node.h>
 
 using BT::NodeConfig;
@@ -17,7 +18,8 @@ public:
     static PortsList providedPorts() {
       return {
         InputPort<geometry_msgs::msg::Twist>("velocity", "Current velocity of turtle"),
-        BidirectionalPort<double>("energy", "Current energy")
+        BidirectionalPort<double>("energy", "Current energy"),
+        OutputPort<std_msgs::msg::Float64>("energy_msg", "Current energy as a ROS2 message")
       };
     }
 
@@ -37,6 +39,8 @@ public:
           return NodeStatus::FAILURE;
       };
 
+      std_msgs::msg::Float64 energy_msg;
+
       double speed = sqrt(
         pow(velocity.linear.x, 2) +
         pow(velocity.linear.y, 2) +
@@ -44,18 +48,22 @@ public:
       );
 
       double energy_consumed = speed * speed_cost_factor + std::fabs(velocity.angular.z) * rot_cost_factor;
+      double new_energy = std::max(energy - energy_consumed, 0.0);
+      energy_msg.data = new_energy;
+
+      setOutput("energy", new_energy);
+      setOutput("energy_msg", energy_msg);
+
       if (energy_consumed == 0) {
         // std::cout << '[' << name() << "] " << "Zero energy consumed." << std::endl;
         return NodeStatus::SUCCESS;
       }
       if (energy > energy_consumed) {
         // std::cout << '[' << name() << "] " << "Discharging, New Energy: " << energy - energy_consumed << std::endl;
-        setOutput("energy", energy - energy_consumed);
         return NodeStatus::SUCCESS;
       }
       else {
         std::cout << '[' << name() << "] " << "WARNING: Out of Energy" << std::endl;
-        setOutput("energy", 0.0);
         return NodeStatus::FAILURE;
       }
     }
