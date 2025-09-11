@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="Untitled">
+    <DynamicSelector input_data=""
+                     utility_threshold=""
+                     stability_threshold=""
+                     utilities="">
+      <Option1/>
+      <Option2/>
+      <Option3/>
+    </DynamicSelector>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Control ID="DynamicSelector"
+             editable="true">
+      <input_port name="input_data"/>
+      <input_port name="utility_threshold"/>
+      <input_port name="stability_threshold"/>
+      <output_port name="utilities"/>
+    </Control>
+    <Action ID="Option1"
+            editable="true"/>
+    <Action ID="Option2"
+            editable="true"/>
+    <Action ID="Option3"
+            editable="true"/>
+  </TreeNodesModel>
+
+</root>

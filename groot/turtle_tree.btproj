@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4" project_name="Project">
+    <include path="slideshow_tree.xml"/>
     <include path="turtle_tree_groot.xml"/>
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
         <Action ID="AlwaysFailureNode" editable="true"/>
+        <Condition ID="ArePosesEqual" editable="true">
+            <input_port name="pose_1"/>
+            <input_port name="pose_2"/>
+        </Condition>
         <Action ID="ChaseTarget" editable="true">
             <input_port name="relative_pose"/>
             <output_port name="chase_velocity"/>
@@ -11,6 +16,7 @@
         <Action ID="ConsumeEnergy" editable="true">
             <input_port name="velocity"/>
             <inout_port name="energy"/>
+            <output_port name="energy_msg"/>
         </Action>
         <Control ID="DynamicSelector" editable="true">
             <input_port name="input_data"/>
@@ -41,6 +47,9 @@
             <input_port name="energy"/>
             <output_port name="data"/>
         </Action>
+        <Action ID="Option1" editable="true"/>
+        <Action ID="Option2" editable="true"/>
+        <Action ID="Option3" editable="true"/>
         <Action ID="PatrolSearch" editable="true">
             <input_port name="chaser_pose"/>
             <input_port name="radius"/>
@@ -57,6 +66,7 @@
             <input_port name="max_energy"/>
             <input_port name="energy_per_tick"/>
             <inout_port name="energy"/>
+            <output_port name="energy_msg"/>
         </Action>
         <Condition ID="RelativeAnglePositive" editable="true">
             <input_port name="chaser_pose"/>
