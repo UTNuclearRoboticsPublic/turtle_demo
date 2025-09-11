@@ -24,8 +24,8 @@ public:
     }
 
     NodeStatus tick() override {
-      static const double speed_cost_factor = 0.025;
-      static const double rot_cost_factor = 0.025;
+      static const double speed_cost_factor = 0.02;
+      static const double rot_cost_factor = 0.02;
 
       geometry_msgs::msg::Twist velocity;
       if (!getInput("velocity", velocity)) {

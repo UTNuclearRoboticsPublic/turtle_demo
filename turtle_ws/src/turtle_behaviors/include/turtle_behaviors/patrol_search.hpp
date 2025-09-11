@@ -43,10 +43,11 @@ private:
         DOWN
     };
 
-    search_phase current_phase;
-    sub_phase current_sub_phase;
-    goal_direction goal;
-    double target_angle;
-    std::pair<double, double> target_point;
+    search_phase current_phase_;
+    sub_phase current_sub_phase_;
+    goal_direction goal_;
+    double target_angle_;
+    double target_x_;
+    double target_y_;
 };
 } // turtle_behaviors
