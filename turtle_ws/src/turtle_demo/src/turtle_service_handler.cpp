@@ -107,7 +107,7 @@ private:
         if (timer_delay_ > 0.0) timer_delay_ -= 0.01;
         if (timer_req_ != nullptr && timer_delay_ <= 0) {
             change_image_->async_send_request(timer_req_);
-            RCLCPP_INFO(this->get_logger(), "Successfully triggered delayed image change.");
+            RCLCPP_INFO(this->get_logger(), "Successfully triggered delayed 'target lost' image change.");
             timer_req_ = nullptr;
             timer_delay_ = 0.0;
         }

@@ -1,5 +1,5 @@
 #include <geometry_msgs/msg/twist.hpp>
-#include <behaviortree_cpp/action_node.h>
+#include <behaviortree_cpp/condition_node.h>
 #include "geometry_msgs/msg/pose_stamped.hpp"
 
 using BT::NodeConfig;
@@ -9,11 +9,11 @@ using BT::OutputPort;
 using BT::PortsList;
 
 namespace turtle_behaviors {
-class ArePosesEqual : public BT::SyncActionNode
+class ArePosesEqual : public BT::ConditionNode
 {
 public:
     ArePosesEqual(const std::string& name, const NodeConfig& conf)
-        : BT::SyncActionNode(name, conf) {}
+        : BT::ConditionNode(name, conf) {}
 
     static PortsList providedPorts() {
       return {

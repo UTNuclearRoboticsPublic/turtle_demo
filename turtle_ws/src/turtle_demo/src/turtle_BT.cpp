@@ -86,10 +86,10 @@ class TurtleInputNode : public InputDataNode {
             }
 
             // Input 3: Distance from center to last known target position
-            double target_center_distance = sqrt(
-                pow(last_known_pose->pose.position.x - 5.5, 2) +
-                pow(last_known_pose->pose.position.y - 5.5, 2)
-            );
+            // double target_center_distance = sqrt(
+            //     pow(last_known_pose->pose.position.x - 5.5, 2) +
+            //     pow(last_known_pose->pose.position.y - 5.5, 2)
+            // );
 
             // Input 4: Distance from center to current chaser position
             double chaser_center_distance = sqrt(

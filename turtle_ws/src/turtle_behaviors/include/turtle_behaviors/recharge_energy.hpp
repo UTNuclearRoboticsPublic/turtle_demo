@@ -18,7 +18,7 @@ public:
     static PortsList providedPorts() {
       return {
         InputPort<double>("max_energy", "Max energy of turtle"),
-        InputPort<double>("energy_per_tick", "Energy gained per tick of this behavior"),
+        InputPort<double>("energy_per_second", "Energy gained per second"),
         BidirectionalPort<double>("energy", "Current energy"),
         OutputPort<std_msgs::msg::Float64>("energy_msg", "Current energy as a ROS2 message")
       };
@@ -27,5 +27,8 @@ public:
     NodeStatus onStart() override;
     NodeStatus onRunning() override;
     void onHalted() override;
+
+private:
+    std::chrono::time_point<std::chrono::system_clock> last_time_;
 };
 } // turtle_behaviors
