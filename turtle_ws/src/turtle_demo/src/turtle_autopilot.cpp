@@ -23,18 +23,22 @@ public:
 };
 
 int main(int argc, char* argv[]) {
-    const float x_speed = 1.0;
-    const float z_speed = 0.25;
+    const float radius = 4.0;
     const float speed_scale = 1.0;
+    srand(time(NULL));
 
     rclcpp::init(argc, argv);
     auto autopilot = std::make_shared<TurtleAutopilot>();
 
-    // Call teleport service
+    // Choose a random starting position on the circle
+    // Exclude leftmost side because the target spawns there
+    const float start_angle = (rand() % 271 - 135) * M_PI / 180.0;
     auto teleport_req = std::make_shared<turtlesim_ds::srv::TeleportAbsolute::Request>();
-    teleport_req->x = 9.5;
-    teleport_req->y = 5.5;
-    teleport_req->theta = 1.571;
+    teleport_req->x = 5.5 + radius * cos(start_angle);
+    teleport_req->y = 5.5 + radius * sin(start_angle);
+    teleport_req->theta = start_angle + M_PI / 2.0;
+
+    // Call teleport service
     RCLCPP_INFO(autopilot->get_logger(), "Waiting for teleport service...");
     if (!autopilot->teleport_client_->wait_for_service(std::chrono::seconds(2))) {
         RCLCPP_ERROR(autopilot->get_logger(), "Timed out waiting for service.");
@@ -57,10 +61,14 @@ int main(int argc, char* argv[]) {
         rclcpp::spin_some(autopilot);
     }
 
+    // Random base speed ranges from 0.9 to 1.1
+    const float speed_base = 1.0 + (rand() % 201 - 100) / 1000.0;
+    const float speed = speed_base * speed_scale;
+
     // Publish constant twist
     auto twist_msg = std::make_shared<geometry_msgs::msg::Twist>();
-    twist_msg->linear.x = x_speed * speed_scale;
-    twist_msg->angular.z = z_speed * speed_scale;
+    twist_msg->linear.x = speed;
+    twist_msg->angular.z = speed / radius;
     RCLCPP_INFO(autopilot->get_logger(), "Publishing constant twist...");
     while (rclcpp::ok()) {
         autopilot->twist_pub_->publish(*twist_msg);

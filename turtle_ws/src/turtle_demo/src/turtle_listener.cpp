@@ -86,8 +86,8 @@ private:
         // Initialize request with turtle name and coordinates
         // Note that x, y and theta are defined as doubles in turtlesim_ds/srv/Spawn
         auto request = std::make_shared<turtlesim_ds::srv::Spawn::Request>();
-        request->x = 4.0;
-        request->y = 2.0;
+        request->x = 1.0;
+        request->y = 1.0;
         request->theta = 0.0;
         request->name = "turtle2";
         request->img_index = 5;
