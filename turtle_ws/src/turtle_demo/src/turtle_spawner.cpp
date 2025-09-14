@@ -10,6 +10,7 @@
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/buffer.h"
 #include "turtlesim_ds/srv/spawn.hpp"
+#include "turtlesim_ds/srv/teleport_absolute.hpp"
 
 using namespace std::chrono_literals;
 
@@ -19,9 +20,11 @@ public:
   TurtleSpawner() : Node("turtle_tf2_frame_listener"),
     turtle_spawned_(false)
   {
-    // Create a client to spawn a turtle
+    // Clients
     spawner_ =
       this->create_client<turtlesim_ds::srv::Spawn>("spawn");
+    teleport_client_ =
+      this->create_client<turtlesim_ds::srv::TeleportAbsolute>("turtle1/teleport_absolute");
 
     // Call on_timer function every second
     timer_ = this->create_wall_timer(
@@ -29,6 +32,7 @@ public:
   }
 
   bool turtle_spawned_;
+  rclcpp::Client<turtlesim_ds::srv::TeleportAbsolute>::SharedPtr teleport_client_{nullptr};
 
 private:
   void on_timer() {
@@ -71,8 +75,29 @@ private:
 
 int main(int argc, char * argv[])
 {
+  const float radius = 4.0;
+  srand(time(NULL));
+
   rclcpp::init(argc, argv);
   auto spawner = std::make_shared<TurtleSpawner>();
+
+  // Choose a random starting position on the circle
+  const float start_angle = (rand() % 360) * M_PI / 180.0;
+  auto teleport_req = std::make_shared<turtlesim_ds::srv::TeleportAbsolute::Request>();
+  teleport_req->x = 5.5 + radius * cos(start_angle);
+  teleport_req->y = 5.5 + radius * sin(start_angle);
+  teleport_req->theta = start_angle + M_PI / 2.0;
+
+  // Call teleport service
+  RCLCPP_INFO(spawner->get_logger(), "Waiting for teleport service...");
+  if (!spawner->teleport_client_->wait_for_service(std::chrono::seconds(2))) {
+      RCLCPP_ERROR(spawner->get_logger(), "Timed out waiting for service.");
+      return 1;
+  }
+  RCLCPP_INFO(spawner->get_logger(), "Sending teleport request...");
+  auto teleport_future = spawner->teleport_client_->async_send_request(teleport_req);
+  auto teleport_status = rclcpp::spin_until_future_complete(spawner, teleport_future, std::chrono::milliseconds(10));
+
   while (!spawner->turtle_spawned_) {
     rclcpp::spin_some(spawner);
   }
