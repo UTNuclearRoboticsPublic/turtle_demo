@@ -29,11 +29,11 @@ set(THIS_PACKAGE_DEPS
     dynamic_selector
 )
 
-add_executable(turtle_broadcaster src/turtle_broadcaster.cpp)
-ament_target_dependencies(turtle_broadcaster ${THIS_PACKAGE_DEPS})
+add_executable(turtle_tf2_frame_publisher src/turtle_tf2_frame_publisher.cpp)
+ament_target_dependencies(turtle_tf2_frame_publisher ${THIS_PACKAGE_DEPS})
 
-add_executable(turtle_listener src/turtle_listener.cpp)
-ament_target_dependencies(turtle_listener ${THIS_PACKAGE_DEPS})
+add_executable(turtle_spawner src/turtle_spawner.cpp)
+ament_target_dependencies(turtle_spawner ${THIS_PACKAGE_DEPS})
 
 add_executable(turtle_service_handler src/turtle_service_handler.cpp)
 ament_target_dependencies(turtle_service_handler ${THIS_PACKAGE_DEPS})
@@ -67,8 +67,8 @@ install(DIRECTORY
 
 # Install executables
 install(TARGETS
-    turtle_broadcaster
-    turtle_listener
+    turtle_tf2_frame_publisher
+    turtle_spawner
     turtle_BT
     turtle_service_handler
     turtle_monitor

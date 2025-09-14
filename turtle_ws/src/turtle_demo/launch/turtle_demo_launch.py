@@ -10,27 +10,24 @@ def generate_launch_description():
         ),
         Node(
             package='turtle_demo',
-            executable='turtle_broadcaster',
-            name='broadcaster1',
+            executable='turtle_tf2_frame_publisher',
+            name='turtle_pub_1',
             parameters=[
                 {'turtlename' : 'turtle1'}
             ]
         ),
         Node(
             package='turtle_demo',
-            executable='turtle_broadcaster',
-            name='broadcaster2',
+            executable='turtle_tf2_frame_publisher',
+            name='turtle_pub_2',
             parameters=[
                 {'turtlename' : 'turtle2'}
             ]
         ),
         Node(
             package='turtle_demo',
-            executable='turtle_listener',
-            name='listener',
-            parameters=[
-                {'target_frame' : 'turtle1'}
-            ]
+            executable='turtle_spawner',
+            name='turtle_spawner'
         ),
         Node(
             package='turtle_demo',
