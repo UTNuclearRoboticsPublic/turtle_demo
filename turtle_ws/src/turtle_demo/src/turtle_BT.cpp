@@ -155,9 +155,8 @@ int main(int argc, char** argv) {
 
     // Define max inputs and weights
     std::vector<double> max_inputs = {
-        30.0,    // Time Since Last Spotted
+        10.0,    // Time Since Last Spotted
         5.5,     // Line of Sight
-        // 5.5,     // Target Displacement - not useful?
         5.5,     // Chaser Displacement
         100.0,   // Energy
         5.0,     // Scan Search Fails
@@ -165,7 +164,7 @@ int main(int argc, char** argv) {
         1.0,     // Rest Fails
     };
     std::vector<std::vector<double>> weights = {
-        {-0.25,  0.20,  0.00,  0.10, -0.25,  0.00,  0.00},
+        {-0.20,  0.20, -0.10,  0.10, -0.25,  0.00,  0.00},
         { 0.20,  0.00,  0.20,  0.10,  0.00, -0.25,  0.00},
         { 0.00,  0.00,  0.00, -1.00,  0.00,  0.00,  0.00}
     };
