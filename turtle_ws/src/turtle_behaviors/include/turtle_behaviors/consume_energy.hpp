@@ -25,7 +25,7 @@ public:
 
     NodeStatus tick() override {
       static const double speed_cost_factor = 0.02;
-      static const double rot_cost_factor = 0.02;
+      static const double rot_cost_factor = 0.03;
 
       geometry_msgs::msg::Twist velocity;
       if (!getInput("velocity", velocity)) {
@@ -43,8 +43,7 @@ public:
 
       double speed = sqrt(
         pow(velocity.linear.x, 2) +
-        pow(velocity.linear.y, 2) +
-        pow(velocity.linear.z, 2)
+        pow(velocity.linear.y, 2)
       );
 
       double energy_consumed = speed * speed_cost_factor + std::fabs(velocity.angular.z) * rot_cost_factor;

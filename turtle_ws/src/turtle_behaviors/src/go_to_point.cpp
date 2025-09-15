@@ -23,9 +23,10 @@ NodeStatus GoToPoint::onStart() {
 
 NodeStatus GoToPoint::onRunning() {
     static const double dist_threshold = 0.1;
-    static const double base_rotation_rate = 0.75;
-    static const double scale_rotation_rate = 1.5;
-    static const double scale_forward_rate = 1.5;
+    static const double base_rotation_rate = 0.5;
+    static const double scale_rotation_rate = 2.0;
+    static const double angle_threshold = 0.05;
+    static const double scale_forward_rate = 1.55;
 
     geometry_msgs::msg::PoseStamped::SharedPtr target_pose, chaser_pose;
     getInput("target_pose", target_pose);
@@ -77,7 +78,7 @@ NodeStatus GoToPoint::onRunning() {
         else turn_direction = diff_angle / abs(diff_angle);  // +- 1.0
         
         // Use trig to see if the end point will be within goal distance of target
-        if ((fabs(diff_angle) > M_PI / 2) || (target_dist * fabs(sin(diff_angle)) > dist_threshold)) {
+        if (fabs(diff_angle) > angle_threshold) {
             chase_velocity.linear.x = 0;
             chase_velocity.angular.z = (base_rotation_rate * turn_direction) + (scale_rotation_rate * diff_angle);
         }

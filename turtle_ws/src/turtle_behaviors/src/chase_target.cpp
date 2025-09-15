@@ -14,9 +14,9 @@ NodeStatus ChaseTarget::onStart() {
 
 NodeStatus ChaseTarget::onRunning() {
     static const double scaleRotationRate = 2.0;
-    static const double scaleForwardSpeed = 2.0;
+    static const double scaleForwardSpeed = 2.2;
     static const double dist_threshold = 0.4;
-    static const double angle_threshold = M_PI / 8;
+    static const double angle_threshold = M_PI / 6;
 
     geometry_msgs::msg::PoseStamped::SharedPtr relative_pose;
     getInput("relative_pose", relative_pose);

@@ -21,6 +21,7 @@ public:
 int main(int argc, char* argv[]) {
     const float radius = 4.0;
     const float speed_scale = 1.0;
+    const float random_range = 0; //0.1;
     srand(time(NULL));
 
     rclcpp::init(argc, argv);
@@ -34,7 +35,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Random base speed ranges from 0.9 to 1.1
-    const float speed_base = 1.0 + (rand() % 201 - 100) / 1000.0;
+    const float speed_base = 1.0 + (rand() % 201 - 100) * random_range / 100;
     const float speed = speed_base * speed_scale;
 
     // Publish constant twist
