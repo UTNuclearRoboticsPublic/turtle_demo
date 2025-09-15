@@ -21,7 +21,7 @@ public:
 int main(int argc, char* argv[]) {
     const float radius = 4.0;
     const float speed_scale = 1.0;
-    const float random_range = 0; //0.1;
+    const float random_range = 0.2;
     srand(time(NULL));
 
     rclcpp::init(argc, argv);
