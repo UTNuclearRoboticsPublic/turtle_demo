@@ -94,12 +94,13 @@ private:
     }
 
     void timerCallback() {
-        // Wait for turtles to start moving
         // Get distance between turtles
+        std::string ns = this->get_namespace();
+        ns = ns.substr(1);
         std::string* err_string = new std::string;
-        if (tf_buffer_->canTransform("turtle1", "turtle2", tf2::TimePointZero, tf2::durationFromSec(1), err_string)) {
+        if (tf_buffer_->canTransform(ns + "/turtle1", ns + "/turtle2", tf2::TimePointZero, tf2::durationFromSec(1), err_string)) {
             const geometry_msgs::msg::TransformStamped tf = tf_buffer_->lookupTransform(
-                "turtle1", "turtle2", tf2::TimePointZero
+                ns + "/turtle1", ns + "/turtle2", tf2::TimePointZero
             );
 
             // Add distance to the total

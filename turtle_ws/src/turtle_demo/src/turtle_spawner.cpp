@@ -76,10 +76,13 @@ private:
 int main(int argc, char * argv[])
 {
   const float radius = 4.0;
-  srand(time(NULL));
 
   rclcpp::init(argc, argv);
   auto spawner = std::make_shared<TurtleSpawner>();
+
+  // Set random seed with time and namespace
+  std::string ns = spawner->get_namespace();
+  srand(time(NULL) + std::hash<std::string>{}(ns));
 
   // Choose a random starting position on the circle
   const float start_angle = (rand() % 360) * M_PI / 180.0;

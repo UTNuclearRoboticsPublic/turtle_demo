@@ -22,15 +22,19 @@ int main(int argc, char* argv[]) {
     const float radius = 4.0;
     const float speed_scale = 1.0;
     const float random_range = 0.2;
-    srand(time(NULL));
 
     rclcpp::init(argc, argv);
     auto autopilot = std::make_shared<TurtleAutopilot>();
 
+    // Set random seed with time and namespace
+    std::string ns = autopilot->get_namespace();
+    srand(time(NULL) + std::hash<std::string>{}(ns));
+
     // Wait for turtle2 to spawn
     RCLCPP_INFO(autopilot->get_logger(), "Waiting for turtle2 to spawn...");
+    ns = ns.substr(1);
     std::string* err_string = new std::string;
-    while (!autopilot->tf_buffer_->canTransform("turtle1", "turtle2", tf2::TimePointZero, tf2::durationFromSec(1), err_string)) {
+    while (!autopilot->tf_buffer_->canTransform(ns + "/turtle1", ns + "/turtle2", tf2::TimePointZero, tf2::durationFromSec(1), err_string)) {
         rclcpp::spin_some(autopilot);
     }
 

@@ -25,7 +25,7 @@ public:
     // Subscribe to a turtle{1}{2}/pose topic and call handle_turtle_pose
     // callback function on each message
     std::ostringstream stream;
-    stream << "/" << turtlename_.c_str() << "/pose";
+    stream << turtlename_.c_str() << "/pose";
     std::string topic_name = stream.str();
 
     subscription_ = this->create_subscription<turtlesim_ds::msg::Pose>(
@@ -42,7 +42,9 @@ private:
     // corresponding tf variables
     t.header.stamp = this->get_clock()->now();
     t.header.frame_id = "world";
-    t.child_frame_id = turtlename_.c_str();
+
+    std::string ns = this->get_namespace();
+    t.child_frame_id = ns + "/" + turtlename_;
 
     // Turtle only exists in 2D, thus we get x and y translation
     // coordinates from the message and set the z coordinate to 0

@@ -17,6 +17,7 @@
 #include <chrono>
 #include <iostream>
 #include <fstream>
+#include <string>
 
 namespace DS {
 typedef geometry_msgs::msg::PoseStamped PoseStamped;
@@ -150,8 +151,16 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // Get namespace
+    std::string ns = "";
+    for (int i = 0; i < argc; i++) {
+        std::string argv_string = argv[i];
+        if (argv_string.substr(0, 4) == "__ns") ns = argv_string.substr(6);
+    }
+
     BT::BehaviorTreeFactory factory;
-    nrg_utility_behaviors::registerBehaviors(factory);
+    nrg_utility_behaviors::Config config = {.sub_namespace=ns};
+    nrg_utility_behaviors::registerBehaviors(factory, config);
 
     // Define max inputs and weights
     std::vector<double> max_inputs = {
@@ -184,6 +193,17 @@ int main(int argc, char** argv) {
     // Register Dynamic Selector behaviors
     factory.registerNodeType<DS::DynamicSelector>("DynamicSelector", max_inputs, weights);
     factory.registerNodeType<DS::TurtleInputNode>("InputDataNode");
+
+    // Register behavior for assigning unique namespace to turtle frames
+    factory.registerSimpleAction("TurtleFrames",
+        [&](TreeNode& node) {
+            node.setOutput("turtle1_name", ns.substr(1) + "/turtle1");
+            node.setOutput("turtle2_name", ns.substr(1) + "/turtle2");
+            return NodeStatus::SUCCESS;
+        },
+        {OutputPort<std::string>("turtle1_name", "Name of turtle1 frame"),
+         OutputPort<std::string>("turtle2_name", "Name of turtle2 frame")}
+    );
 
     auto tree = factory.createTreeFromFile(bt_path);
     std::string xml_models = BT::writeTreeNodesModelXML(factory);
