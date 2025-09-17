@@ -28,7 +28,7 @@ public:
         set_pen_2_ = this->create_client<turtlesim_ds::srv::SetPen>("turtle2/set_pen");
         log_sighting_ = this->create_client<std_srvs::srv::Trigger>("log_sighting");
 
-        timer_ = this->create_wall_timer(std::chrono::duration<double>(0.01), std::bind(&TurtleServiceHandler::timerCallback, this));
+        timer_ = this->create_wall_timer(std::chrono::duration<double>(0.1), std::bind(&TurtleServiceHandler::timerCallback, this));
         RCLCPP_INFO(this->get_logger(), "Ready to receive trigger services");
     }
 
@@ -104,7 +104,7 @@ private:
     }
 
     void timerCallback() {
-        if (timer_delay_ > 0.0) timer_delay_ -= 0.01;
+        if (timer_delay_ > 0.0) timer_delay_ -= 0.1;
         if (timer_req_ != nullptr && timer_delay_ <= 0) {
             change_image_->async_send_request(timer_req_);
             RCLCPP_INFO(this->get_logger(), "Successfully triggered delayed 'target lost' image change.");

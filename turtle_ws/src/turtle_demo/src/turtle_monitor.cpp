@@ -27,7 +27,7 @@ public:
             std::bind(&TurtleMonitor::speedCallback, this, std::placeholders::_1));
 
         // Timer
-        timer_ = this->create_wall_timer(std::chrono::duration<double>(0.01), std::bind(&TurtleMonitor::timerCallback, this));
+        timer_ = this->create_wall_timer(std::chrono::duration<double>(0.1), std::bind(&TurtleMonitor::timerCallback, this));
 
         // TF listener
         tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());

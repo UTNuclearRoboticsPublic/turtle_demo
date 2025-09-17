@@ -26,9 +26,11 @@
             <SubTree ID="Proximity Check" turtle1="{turtle1}" turtle2="{turtle2}"/>
             <TriggerService service_name="target_seen"/>
             <ReactiveSequence name="Chase Target Loop">
-              <SubTree ID="Proximity Check" turtle1="{turtle1}" turtle2="{turtle2}"/>
-              <GetCurrentPose reference_frame="world" target_frame="{turtle1}" pose="{last_known_pose}"/>
-              <GetCurrentPose reference_frame="{turtle2}" target_frame="{turtle1}" pose="{relative_pose}"/>
+              <Sequence>
+                <SubTree ID="Proximity Check" turtle1="{turtle1}" turtle2="{turtle2}"/>
+                <GetCurrentPose reference_frame="world" target_frame="{turtle1}" pose="{last_known_pose}"/>
+                <GetCurrentPose reference_frame="{turtle2}" target_frame="{turtle1}" pose="{relative_pose}"/>
+              </Sequence>
               <ReactiveFallback name="Move or Recharge">
                 <SubTree ID="Move Turtle" velocity="{chase_velocity}" energy="{turtle2_energy}"/>
                 <Sequence name="Recharge">
@@ -42,11 +44,13 @@
           <Sequence name="Search for Target">
             <TriggerService service_name="target_lost"/>
             <ReactiveSequence name="Search Loop">
-              <Inverter>
-                <SubTree ID="Proximity Check" turtle1="{turtle1}" turtle2="{turtle2}"/>
-              </Inverter>
-              <GetCurrentPose reference_frame="world" target_frame="{turtle2}" pose="{chaser_pose}"/>
-              <GetCurrentPose reference_frame="{turtle2}" target_frame="{turtle1}" pose="{relative_pose}"/>
+              <Sequence>
+                <Inverter>
+                  <SubTree ID="Proximity Check" turtle1="{turtle1}" turtle2="{turtle2}"/>
+                </Inverter>
+                <GetCurrentPose reference_frame="world" target_frame="{turtle2}" pose="{chaser_pose}"/>
+                <GetCurrentPose reference_frame="{turtle2}" target_frame="{turtle1}" pose="{relative_pose}"/>
+              </Sequence>
               <RepeatNode num_cycles="-1">
                 <Fallback name="Search Tactics">
                   <Sequence name="Rest and Scan">
@@ -87,9 +91,11 @@
       <Sequence name="Move">
         <ConsumeEnergy velocity="{velocity}" energy="{energy}" energy_msg="{energy_msg}"/>
         <ForceSuccessNode>
-          <PublishMessageToTopic topic="turtle2/cmd_vel" value="{velocity}"/>
+          <Sequence>
+            <PublishMessageToTopic topic="turtle2/cmd_vel" value="{velocity}"/>
+            <PublishMessageToTopic topic="turtle_energy" value="{energy_msg}"/>
+          </Sequence>
         </ForceSuccessNode>
-        <PublishMessageToTopic topic="turtle_energy" value="{energy_msg}"/>
       </Sequence>
       <Sequence name="Fail to Move">
         <StopTurtle zero_velocity="{velocity}"/>

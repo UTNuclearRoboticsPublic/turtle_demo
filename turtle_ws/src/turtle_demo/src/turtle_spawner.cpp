@@ -26,9 +26,9 @@ public:
     teleport_client_ =
       this->create_client<turtlesim_ds::srv::TeleportAbsolute>("turtle1/teleport_absolute");
 
-    // Call on_timer function every second
+    // Try to spawn every 0.1 seconds
     timer_ = this->create_wall_timer(
-      1s, std::bind(&TurtleSpawner::on_timer, this));
+      0.1s, std::bind(&TurtleSpawner::on_timer, this));
   }
 
   bool turtle_spawned_;
@@ -57,6 +57,7 @@ private:
               RCLCPP_ERROR(this->get_logger(), "Service callback result mismatch");
           };
         };
+        RCLCPP_INFO(this->get_logger(), "Sending spawn request...");
         auto result = spawner_->async_send_request(request, response_received_callback);
         turtle_spawned_ = true;
       } else {
@@ -92,14 +93,12 @@ int main(int argc, char * argv[])
   teleport_req->theta = start_angle + M_PI / 2.0;
 
   // Call teleport service
-  RCLCPP_INFO(spawner->get_logger(), "Waiting for teleport service...");
-  if (!spawner->teleport_client_->wait_for_service(std::chrono::seconds(2))) {
-      RCLCPP_ERROR(spawner->get_logger(), "Timed out waiting for service.");
-      return 1;
+  while (!spawner->teleport_client_->wait_for_service(std::chrono::seconds(1))) {
+      RCLCPP_INFO(spawner->get_logger(), "Waiting for teleport service...");
   }
   RCLCPP_INFO(spawner->get_logger(), "Sending teleport request...");
   auto teleport_future = spawner->teleport_client_->async_send_request(teleport_req);
-  auto teleport_status = rclcpp::spin_until_future_complete(spawner, teleport_future, std::chrono::milliseconds(10));
+  auto teleport_status = rclcpp::spin_until_future_complete(spawner, teleport_future, std::chrono::seconds(1));
 
   while (!spawner->turtle_spawned_) {
     rclcpp::spin_some(spawner);
