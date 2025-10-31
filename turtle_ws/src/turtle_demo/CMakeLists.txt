@@ -47,6 +47,9 @@ ament_target_dependencies(turtle_BT ${THIS_PACKAGE_DEPS})
 add_executable(turtle_autopilot src/turtle_autopilot.cpp)
 ament_target_dependencies(turtle_autopilot ${THIS_PACKAGE_DEPS})
 
+add_executable(turtle_active_autopilot src/turtle_active_autopilot.cpp)
+ament_target_dependencies(turtle_active_autopilot ${THIS_PACKAGE_DEPS})
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
@@ -73,6 +76,7 @@ install(TARGETS
     turtle_service_handler
     turtle_monitor
     turtle_autopilot
+    turtle_active_autopilot
     DESTINATION lib/${PROJECT_NAME}
 )
 

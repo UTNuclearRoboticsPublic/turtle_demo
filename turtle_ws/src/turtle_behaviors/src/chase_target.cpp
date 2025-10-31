@@ -38,7 +38,7 @@ NodeStatus ChaseTarget::onRunning() {
     double target_angle = atan2(
             relative_pose->pose.position.y,
             relative_pose->pose.position.x
-        );
+    );
     
     if (fabs(target_angle) > angle_threshold)
         chase_velocity.angular.z = scaleRotationRate * target_angle / fabs(target_angle);
