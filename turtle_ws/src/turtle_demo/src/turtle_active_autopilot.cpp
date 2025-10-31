@@ -26,12 +26,36 @@ public:
 
 private:
     void timerCallback() {
+        const double dist_threshold = 5.0;
         const double angle_threshold = M_PI / 6;
+
         geometry_msgs::msg::Twist twist_msg;
+        std::string ns = this->get_namespace();
+        ns = ns.substr(1);
+
+        // Get distance and relative angle to chaser
+        const geometry_msgs::msg::TransformStamped tf_target_chaser = tf_buffer_->lookupTransform(
+            ns + "/turtle1", ns + "/turtle2", tf2::TimePointZero
+        );
+        double relative_angle = atan2(
+            tf_target_chaser.transform.translation.y,
+            tf_target_chaser.transform.translation.x
+        );
+        double chaser_dist = sqrt(
+            pow(tf_target_chaser.transform.translation.x, 2) +
+            pow(tf_target_chaser.transform.translation.y, 2)
+        );
+
+        // Stop moving if chaser is far away
+        if (chaser_dist > dist_threshold) {
+            RCLCPP_INFO(this->get_logger(), "Chaser far away");
+            twist_pub_->publish(twist_msg);
+            return;
+        }
 
         // Get absolute position and orientation
         const geometry_msgs::msg::TransformStamped tf_world_target = tf_buffer_->lookupTransform(
-            "/world", "/turtle1", tf2::TimePointZero
+            "world", ns + "/turtle1", tf2::TimePointZero
         );
 
         // Compute current angle (Axis angle formula)
@@ -39,7 +63,8 @@ private:
         const double q_w = tf_world_target.transform.rotation.w;
         const double q_z = tf_world_target.transform.rotation.z;
         if (q_z == 0) target_angle = 0;
-        else target_angle = 2 * acos(q_w) * q_z / abs(q_z);  // Ranges from 0 to 2*pi
+        else target_angle = 2 * acos(q_w) * q_z / abs(q_z); 
+        if (target_angle < 0) target_angle += 2 * M_PI; // Ranges from 0 to 2*pi
 
         // Translation from center
         double target_displacement[2] = {
@@ -50,6 +75,7 @@ private:
         bool near_wall = false;
         double safe_angles[2];
         if ((fabs(target_displacement[0]) > 4.5) && (fabs(target_displacement[1]) > 4.5)) {
+            RCLCPP_INFO(this->get_logger(), "Corner");
             // If cornered, face away from either nearby wall
             safe_angles[0] = (target_displacement[0] > 4.5) ? M_PI : 0;
             safe_angles[1] = (target_displacement[1] > 4.5) ? 3 * M_PI / 2 : M_PI / 2;
@@ -68,32 +94,35 @@ private:
             near_wall = true;
         }
 
-        if (near_wall) {
+        if (near_wall && (chaser_dist > 2.0)) {
+            RCLCPP_INFO(this->get_logger(), "Safe angle difference 1: [%f]", fabs(target_angle - safe_angles[0]));
+            RCLCPP_INFO(this->get_logger(), "Safe angle difference 2: [%f]", fabs(target_angle - safe_angles[1]));
             // Find the nearest safe angle
             double goal_angle = (fabs(target_angle - safe_angles[0]) < fabs(target_angle - safe_angles[1])) ?
                 safe_angles[0] : safe_angles[1];
+            RCLCPP_INFO(this->get_logger(), "Goal angle: [%f], current angle: [%f]", goal_angle, target_angle);
             // Turn if not facing that angle, else go forward
-            if (goal_angle - target_angle < 0.01) twist_msg.linear.x = speed_;
-            else twist_msg.angular.z = 2.0 * (goal_angle - target_angle) / fabs(goal_angle - target_angle);
+            if (fabs(goal_angle - target_angle) < 0.1) {
+                RCLCPP_INFO(this->get_logger(), "Forward along wall");
+                twist_msg.linear.x = speed_;
+            }
+            else {
+                RCLCPP_INFO(this->get_logger(), "Turning");
+                twist_msg.angular.z = 2.0 * (goal_angle - target_angle) / fabs(goal_angle - target_angle);
+            }
             twist_pub_->publish(twist_msg);
             return;
         }
 
-        // If not near wall, move away from chaser
-        // Get relative angle to chaser
-        const geometry_msgs::msg::TransformStamped tf_target_chaser = tf_buffer_->lookupTransform(
-            "/turtle2", "/turtle1", tf2::TimePointZero
-        );
-        double relative_angle = atan2(
-            tf_target_chaser.transform.translation.y,
-            tf_target_chaser.transform.translation.x
-        );
-
+        // If not near wall, or chaser too close, move away from chaser
         // Move forward if chaser is directly behind target
-        if (fabs(relative_angle + M_PI) <= angle_threshold) {
+        if (fabs(fabs(relative_angle) - M_PI) <= angle_threshold) {
+            RCLCPP_INFO(this->get_logger(), "Chaser behind: angle [%f]", relative_angle);
             twist_msg.linear.x = speed_;
         }
+        // Else, turn away from chaser
         else {
+            RCLCPP_INFO(this->get_logger(), "Chaser not behind: angle [%f]", relative_angle);
             twist_msg.angular.z = -2.0 * relative_angle / fabs(relative_angle);
         }
         twist_pub_->publish(twist_msg);
