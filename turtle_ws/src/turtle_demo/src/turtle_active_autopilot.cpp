@@ -22,12 +22,19 @@ public:
     }
     
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+    bool enable_ = false;
+    const double angle_threshold_ = M_PI / 6;
     
 
 private:
     void timerCallback() {
+        if (!enable_) {
+            RCLCPP_INFO(this->get_logger(), "WAITING...");
+            return;
+        }
+        
         const double dist_threshold = 5.0;
-        const double angle_threshold = M_PI / 6;
+        
 
         geometry_msgs::msg::Twist twist_msg;
         std::string ns = this->get_namespace();
@@ -45,13 +52,6 @@ private:
             pow(tf_target_chaser.transform.translation.x, 2) +
             pow(tf_target_chaser.transform.translation.y, 2)
         );
-
-        // Stop moving if chaser is far away
-        if (chaser_dist > dist_threshold) {
-            RCLCPP_INFO(this->get_logger(), "Chaser far away");
-            twist_pub_->publish(twist_msg);
-            return;
-        }
 
         // Get absolute position and orientation
         const geometry_msgs::msg::TransformStamped tf_world_target = tf_buffer_->lookupTransform(
@@ -72,60 +72,73 @@ private:
             tf_world_target.transform.translation.y - 5.5
         };
 
-        bool near_wall = false;
+        // Stop moving if chaser is far away
+        if (chaser_dist > dist_threshold) {
+            RCLCPP_INFO(this->get_logger(), "Chaser far away");
+        }
+
+        else if (std::max(fabs(target_displacement[0]), fabs(target_displacement[1])) > 4.5) {
+            moveAlongWalls(twist_msg, target_angle, target_displacement);
+        }
+
+        // If not near wall, or chaser too close, move away from chaser
+        else {
+            evadeChaser(twist_msg, relative_angle);
+        }
+
+        twist_pub_->publish(twist_msg);
+    }
+
+    void evadeChaser(auto& twist_msg, double relative_angle) {
+        // Move forward if chaser is directly behind target
+        if (fabs(fabs(relative_angle) - M_PI) <= angle_threshold_) {
+            RCLCPP_INFO(this->get_logger(), "Chaser behind: angle [%f]", relative_angle);
+            twist_msg.linear.x = speed_;
+        }
+
+        // Else, turn away from chaser
+        else {
+            RCLCPP_INFO(this->get_logger(), "Chaser not behind: angle [%f]", relative_angle);
+            twist_msg.angular.z = -2.0 * relative_angle / fabs(relative_angle);
+        }
+        return;
+    }
+
+    void moveAlongWalls(auto& twist_msg, double target_angle, double* target_displacement) {
         double safe_angles[2];
         if ((fabs(target_displacement[0]) > 4.5) && (fabs(target_displacement[1]) > 4.5)) {
             RCLCPP_INFO(this->get_logger(), "Corner");
             // If cornered, face away from either nearby wall
             safe_angles[0] = (target_displacement[0] > 4.5) ? M_PI : 0;
             safe_angles[1] = (target_displacement[1] > 4.5) ? 3 * M_PI / 2 : M_PI / 2;
-            near_wall = true;
         }
         else if (fabs(target_displacement[0]) > 4.5) {
             // If near a vertical wall, face up or down
             safe_angles[0] = M_PI / 2;
             safe_angles[1] = 3 * M_PI / 2;
-            near_wall = true;
         }
         else if (fabs(target_displacement[1]) > 4.5) {
             // If near a horizontal wall, face left or right
             safe_angles[0] = 0;
             safe_angles[1] = M_PI;
-            near_wall = true;
         }
 
-        if (near_wall && (chaser_dist > 2.0)) {
-            RCLCPP_INFO(this->get_logger(), "Safe angle difference 1: [%f]", fabs(target_angle - safe_angles[0]));
-            RCLCPP_INFO(this->get_logger(), "Safe angle difference 2: [%f]", fabs(target_angle - safe_angles[1]));
-            // Find the nearest safe angle
-            double goal_angle = (fabs(target_angle - safe_angles[0]) < fabs(target_angle - safe_angles[1])) ?
-                safe_angles[0] : safe_angles[1];
-            RCLCPP_INFO(this->get_logger(), "Goal angle: [%f], current angle: [%f]", goal_angle, target_angle);
-            // Turn if not facing that angle, else go forward
-            if (fabs(goal_angle - target_angle) < 0.1) {
-                RCLCPP_INFO(this->get_logger(), "Forward along wall");
-                twist_msg.linear.x = speed_;
-            }
-            else {
-                RCLCPP_INFO(this->get_logger(), "Turning");
-                twist_msg.angular.z = 2.0 * (goal_angle - target_angle) / fabs(goal_angle - target_angle);
-            }
-            twist_pub_->publish(twist_msg);
-            return;
-        }
-
-        // If not near wall, or chaser too close, move away from chaser
-        // Move forward if chaser is directly behind target
-        if (fabs(fabs(relative_angle) - M_PI) <= angle_threshold) {
-            RCLCPP_INFO(this->get_logger(), "Chaser behind: angle [%f]", relative_angle);
+        RCLCPP_INFO(this->get_logger(), "Safe angle difference 1: [%f]", fabs(target_angle - safe_angles[0]));
+        RCLCPP_INFO(this->get_logger(), "Safe angle difference 2: [%f]", fabs(target_angle - safe_angles[1]));
+        // Find the nearest safe angle
+        double goal_angle = (fabs(target_angle - safe_angles[0]) < fabs(target_angle - safe_angles[1])) ?
+            safe_angles[0] : safe_angles[1];
+        RCLCPP_INFO(this->get_logger(), "Goal angle: [%f], current angle: [%f]", goal_angle, target_angle);
+        // Turn if not facing that angle, else go forward
+        if (fabs(goal_angle - target_angle) < 0.1) {
+            RCLCPP_INFO(this->get_logger(), "Forward along wall");
             twist_msg.linear.x = speed_;
         }
-        // Else, turn away from chaser
         else {
-            RCLCPP_INFO(this->get_logger(), "Chaser not behind: angle [%f]", relative_angle);
-            twist_msg.angular.z = -2.0 * relative_angle / fabs(relative_angle);
+            RCLCPP_INFO(this->get_logger(), "Turning");
+            twist_msg.angular.z = 2.0 * (goal_angle - target_angle) / fabs(goal_angle - target_angle);
         }
-        twist_pub_->publish(twist_msg);
+
         return;
     }
 
@@ -136,8 +149,8 @@ private:
 };
 
 int main(int argc, char* argv[]) {
-    const float speed_scale = 1.0;
-    const float random_range = 0.2;
+    const float speed_scale = 1.5;
+    const float random_range = 0.0; //0.2;
 
     rclcpp::init(argc, argv);
     auto autopilot = std::make_shared<TurtleActiveAutopilot>();
@@ -153,6 +166,7 @@ int main(int argc, char* argv[]) {
     while (!autopilot->tf_buffer_->canTransform(ns + "/turtle1", ns + "/turtle2", tf2::TimePointZero, tf2::durationFromSec(1), err_string)) {
         rclcpp::spin_some(autopilot);
     }
+    autopilot->enable_ = true;
 
     // Random base speed ranges from 0.8 to 1.2
     const float speed_base = 1.0 + (rand() % 201 - 100) * random_range / 100;
