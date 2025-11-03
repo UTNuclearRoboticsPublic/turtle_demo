@@ -22,9 +22,7 @@ public:
     }
     
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
-    bool enable_ = false;
-    const double angle_threshold_ = M_PI / 6;
-    
+    bool enable_ = false;    
 
 private:
     void timerCallback() {
@@ -35,7 +33,6 @@ private:
         
         const double dist_threshold = 5.0;
         
-
         geometry_msgs::msg::Twist twist_msg;
         std::string ns = this->get_namespace();
         ns = ns.substr(1);
@@ -72,79 +69,130 @@ private:
             tf_world_target.transform.translation.y - 5.5
         };
 
+        // If facing towards Chaser, turn away from it
+        if ((relative_angle >= -M_PI / 4) && (relative_angle <= M_PI / 4)) {
+            RCLCPP_INFO(this->get_logger(), "Turning away from Chaser, angle [%f]", relative_angle);
+            twist_msg.angular.z = -2.0 * relative_angle / fabs(relative_angle);
+        }
+
         // Stop moving if chaser is far away
         if (chaser_dist > dist_threshold) {
-            RCLCPP_INFO(this->get_logger(), "Chaser far away");
+            // RCLCPP_INFO(this->get_logger(), "Chaser far away");
+            twist_pub_->publish(twist_msg);
+            return;
         }
 
-        else if (std::max(fabs(target_displacement[0]), fabs(target_displacement[1])) > 4.5) {
-            moveAlongWalls(twist_msg, target_angle, target_displacement);
-        }
+        // Get goal angle from positions of Chaser and walls
+        double guess_angle = M_PI + angleDifference(target_angle, -relative_angle);
+        double goal_angle = chooseGoalAngle(guess_angle, target_angle, target_displacement[0], target_displacement[1]);
 
-        // If not near wall, or chaser too close, move away from chaser
+        // If not facing goal angle, turn toward it
+        double angle_diff = angleDifference(goal_angle, target_angle);
+        // RCLCPP_INFO(this->get_logger(), "%f - %f = %f", goal_angle, target_angle, angle_diff);
+        if (fabs(angle_diff) > angle_threshold_) {
+            // RCLCPP_INFO(this->get_logger(), "Turning: angle difference [%f]", angle_diff);
+            twist_msg.angular.z = 2.0 * angle_diff / fabs(angle_diff);
+        }
+        // Else, go forward
         else {
-            evadeChaser(twist_msg, relative_angle);
+            // RCLCPP_INFO(this->get_logger(), "Forward: angle difference [%f]", angle_diff);
+            twist_msg.linear.x = speed_;
         }
 
         twist_pub_->publish(twist_msg);
     }
 
-    void evadeChaser(auto& twist_msg, double relative_angle) {
-        // Move forward if chaser is directly behind target
-        if (fabs(fabs(relative_angle) - M_PI) <= angle_threshold_) {
-            RCLCPP_INFO(this->get_logger(), "Chaser behind: angle [%f]", relative_angle);
-            twist_msg.linear.x = speed_;
+    double chooseGoalAngle(double guess_angle, double current_angle, double x_displacement, double y_displacement) {
+        // Choose a goal angle that is closes to guess_angle but avoids wall collisions
+        const double inner_threshold = 4.0;
+        const double outer_threshold = 5.0;
+
+        double x_wall_proximity = (fabs(x_displacement) - inner_threshold) / (outer_threshold - inner_threshold);
+        double y_wall_proximity = (fabs(y_displacement) - inner_threshold) / (outer_threshold - inner_threshold);
+
+        // Increase wall avoidance when near a corner
+        if ((x_wall_proximity > 0) && (y_wall_proximity > 0)) {
+            x_wall_proximity *= 1.5;
+            y_wall_proximity *= 1.5;
         }
 
-        // Else, turn away from chaser
-        else {
-            RCLCPP_INFO(this->get_logger(), "Chaser not behind: angle [%f]", relative_angle);
-            twist_msg.angular.z = -2.0 * relative_angle / fabs(relative_angle);
+        // Initialize with all angles allowed
+        double x_forbidden_angles[2] = {2 * M_PI, 0};
+        double y_forbidden_angles[2] = {2 * M_PI, 0};
+
+        // Forbid a range of angles towards the wall ranging from 0 to pi, proportional to proximity
+        if (x_wall_proximity > 0) {
+            double x_wall_direction = (x_displacement > 0) ? 0 : M_PI;
+            x_forbidden_angles[0] = x_wall_direction - std::min(x_wall_proximity, 1.0) * (M_PI / 2 + angle_threshold_);
+            x_forbidden_angles[1] = x_wall_direction + std::min(x_wall_proximity, 1.0) * (M_PI / 2 + angle_threshold_);
+            // RCLCPP_INFO(this->get_logger(), "X forbidden angles: [%f, %f]", x_forbidden_angles[0], x_forbidden_angles[1]);
         }
-        return;
+
+        if (y_wall_proximity > 0) {
+            double y_wall_direction = (y_displacement > 0) ? M_PI / 2 : 3 * M_PI / 2;
+            y_forbidden_angles[0] = y_wall_direction - std::min(y_wall_proximity, 1.0) * (M_PI / 2 + angle_threshold_);
+            y_forbidden_angles[1] = y_wall_direction + std::min(y_wall_proximity, 1.0) * (M_PI / 2 + angle_threshold_);
+            // RCLCPP_INFO(this->get_logger(), "Y forbidden angles: [%f, %f]", y_forbidden_angles[0], y_forbidden_angles[1]);
+        }
+
+        // If guess_angle is outside the forbidden ranges, return it
+        // RCLCPP_INFO(this->get_logger(), "Guess angle: %f", guess_angle);
+        if (!angleWithinRange(guess_angle, x_forbidden_angles) &&
+            !angleWithinRange(guess_angle, y_forbidden_angles)) {
+            // RCLCPP_INFO(this->get_logger(), "Evading Chaser");
+            return guess_angle;
+        }
+
+        // RCLCPP_INFO(this->get_logger(), "Avoiding walls");
+
+        // Else, increase and decrease guess_angle until 2 valid angles are found
+        double guess_angles[2] = {guess_angle, guess_angle};
+        double increment = M_PI / 36;  // 5 degrees
+        while (angleWithinRange(guess_angles[0], x_forbidden_angles) ||
+               angleWithinRange(guess_angles[0], y_forbidden_angles)) {
+            guess_angles[0] -= increment;
+        }
+        while (angleWithinRange(guess_angles[1], x_forbidden_angles) ||
+               angleWithinRange(guess_angles[1], y_forbidden_angles)) {
+            guess_angles[1] += increment;
+        }
+
+        // RCLCPP_INFO(this->get_logger(), "Guess angles: (%f, %f)", guess_angles[0], guess_angles[1]);
+
+        // Choose the goal angle closer to the target's current angle
+        if (fabs(angleDifference(guess_angles[0], current_angle)) < fabs(angleDifference(guess_angles[1], current_angle))) {
+            // RCLCPP_INFO(this->get_logger(), "Choosing angle 1");
+            return guess_angles[0];
+        }
+        else {
+            // RCLCPP_INFO(this->get_logger(), "Choosing angle 2");
+            return guess_angles[1];
+        }
     }
 
-    void moveAlongWalls(auto& twist_msg, double target_angle, double* target_displacement) {
-        double safe_angles[2];
-        if ((fabs(target_displacement[0]) > 4.5) && (fabs(target_displacement[1]) > 4.5)) {
-            RCLCPP_INFO(this->get_logger(), "Corner");
-            // If cornered, face away from either nearby wall
-            safe_angles[0] = (target_displacement[0] > 4.5) ? M_PI : 0;
-            safe_angles[1] = (target_displacement[1] > 4.5) ? 3 * M_PI / 2 : M_PI / 2;
-        }
-        else if (fabs(target_displacement[0]) > 4.5) {
-            // If near a vertical wall, face up or down
-            safe_angles[0] = M_PI / 2;
-            safe_angles[1] = 3 * M_PI / 2;
-        }
-        else if (fabs(target_displacement[1]) > 4.5) {
-            // If near a horizontal wall, face left or right
-            safe_angles[0] = 0;
-            safe_angles[1] = M_PI;
-        }
+    double angleDifference(double angle1, double angle2) {
+        // Returns (angle1 - angle2) on range (-pi, pi)
+        double angle_diff = angle1 - angle2;
+        while (angle_diff > M_PI) angle_diff -= 2 * M_PI;
+        while (angle_diff < -M_PI) angle_diff += 2 * M_PI;
 
-        RCLCPP_INFO(this->get_logger(), "Safe angle difference 1: [%f]", fabs(target_angle - safe_angles[0]));
-        RCLCPP_INFO(this->get_logger(), "Safe angle difference 2: [%f]", fabs(target_angle - safe_angles[1]));
-        // Find the nearest safe angle
-        double goal_angle = (fabs(target_angle - safe_angles[0]) < fabs(target_angle - safe_angles[1])) ?
-            safe_angles[0] : safe_angles[1];
-        RCLCPP_INFO(this->get_logger(), "Goal angle: [%f], current angle: [%f]", goal_angle, target_angle);
-        // Turn if not facing that angle, else go forward
-        if (fabs(goal_angle - target_angle) < 0.1) {
-            RCLCPP_INFO(this->get_logger(), "Forward along wall");
-            twist_msg.linear.x = speed_;
-        }
-        else {
-            RCLCPP_INFO(this->get_logger(), "Turning");
-            twist_msg.angular.z = 2.0 * (goal_angle - target_angle) / fabs(goal_angle - target_angle);
-        }
+        return angle_diff;
+    }
 
-        return;
+    bool angleWithinRange(double angle, double* range) {
+        // Returns true if min_angle <= angle <= max_angle
+        double test_angles[3] = {angle - 2 * M_PI, angle, angle + 2 * M_PI};
+        for (size_t i = 0; i < 3; i++) {
+            if ((range[0] <= test_angles[i]) && (test_angles[i] <= range[1]))
+            return true;
+        }
+        return false;
     }
 
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr twist_pub_{nullptr};
     rclcpp::TimerBase::SharedPtr timer_{nullptr};
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+    const double angle_threshold_ = M_PI / 6;
     double speed_;
 };
 
