@@ -16,22 +16,14 @@ public:
         // Timer
         timer_ = this->create_wall_timer(std::chrono::duration<double>(0.1), std::bind(&TurtleActiveAutopilot::timerCallback, this));
     }
-
-    void setSpeed(double speed) {
-        speed_ = speed;
-    }
     
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
     bool enable_ = false;    
+    double speed_;
 
 private:
     void timerCallback() {
-        if (!enable_) {
-            RCLCPP_INFO(this->get_logger(), "WAITING...");
-            return;
-        }
-        
-        const double dist_threshold = 5.0;
+        if (!enable_) return;
         
         geometry_msgs::msg::Twist twist_msg;
         std::string ns = this->get_namespace();
@@ -72,11 +64,11 @@ private:
         // If facing towards Chaser, turn away from it
         if ((relative_angle >= -M_PI / 4) && (relative_angle <= M_PI / 4)) {
             RCLCPP_INFO(this->get_logger(), "Turning away from Chaser, angle [%f]", relative_angle);
-            twist_msg.angular.z = -2.0 * relative_angle / fabs(relative_angle);
+            twist_msg.angular.z = -turn_rate_ * relative_angle / fabs(relative_angle);
         }
 
         // Stop moving if chaser is far away
-        if (chaser_dist > dist_threshold) {
+        if (chaser_dist > chaser_dist_threshold_) {
             // RCLCPP_INFO(this->get_logger(), "Chaser far away");
             twist_pub_->publish(twist_msg);
             return;
@@ -91,7 +83,7 @@ private:
         // RCLCPP_INFO(this->get_logger(), "%f - %f = %f", goal_angle, target_angle, angle_diff);
         if (fabs(angle_diff) > angle_threshold_) {
             // RCLCPP_INFO(this->get_logger(), "Turning: angle difference [%f]", angle_diff);
-            twist_msg.angular.z = 2.0 * angle_diff / fabs(angle_diff);
+            twist_msg.angular.z = turn_rate_ * angle_diff / fabs(angle_diff);
         }
         // Else, go forward
         else {
@@ -104,11 +96,9 @@ private:
 
     double chooseGoalAngle(double guess_angle, double current_angle, double x_displacement, double y_displacement) {
         // Choose a goal angle that is closes to guess_angle but avoids wall collisions
-        const double inner_threshold = 4.0;
-        const double outer_threshold = 5.0;
 
-        double x_wall_proximity = (fabs(x_displacement) - inner_threshold) / (outer_threshold - inner_threshold);
-        double y_wall_proximity = (fabs(y_displacement) - inner_threshold) / (outer_threshold - inner_threshold);
+        double x_wall_proximity = (fabs(x_displacement) - min_wall_threshold_) / (max_wall_threshold_ - min_wall_threshold_);
+        double y_wall_proximity = (fabs(y_displacement) - min_wall_threshold_) / (max_wall_threshold_ - min_wall_threshold_);
 
         // Increase wall avoidance when near a corner
         if ((x_wall_proximity > 0) && (y_wall_proximity > 0)) {
@@ -193,12 +183,15 @@ private:
     rclcpp::TimerBase::SharedPtr timer_{nullptr};
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
     const double angle_threshold_ = M_PI / 6;
-    double speed_;
+    const double chaser_dist_threshold_ = 5.5;
+    const double min_wall_threshold_ = 4.0;
+    const double max_wall_threshold_ = 5.0;
+    const double turn_rate_ = 2.0;
 };
 
 int main(int argc, char* argv[]) {
-    const float speed_scale = 1.5;
-    const float random_range = 0.0; //0.2;
+    const float speed_base = 1.2;
+    const float random_range = 0.2;
 
     rclcpp::init(argc, argv);
     auto autopilot = std::make_shared<TurtleActiveAutopilot>();
@@ -217,12 +210,11 @@ int main(int argc, char* argv[]) {
     autopilot->enable_ = true;
 
     // Random base speed ranges from 0.8 to 1.2
-    const float speed_base = 1.0 + (rand() % 201 - 100) * random_range / 100;
-    const float speed = speed_base * speed_scale;
-    autopilot->setSpeed(speed);
+    const float speed = speed_base + (rand() % 201 - 100) * random_range / 100;
+    autopilot->speed_ = speed;
 
     // Publish constant twist
-    RCLCPP_INFO(autopilot->get_logger(), "Publishing constant twist...");
+    RCLCPP_INFO(autopilot->get_logger(), "Target speed: %f", speed);
     rclcpp::spin(autopilot);
     
     return 0;

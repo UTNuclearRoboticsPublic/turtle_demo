@@ -17,21 +17,21 @@ def namespace_launch(context):
             name='turtle_BT',
             namespace=namespace,
             output='screen',
-            arguments=['/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_tree.xml'],
+            arguments=['/home/sheenan/thesis/turtle_ws/src/turtle_demo/behavior_trees/control_tree.xml'],
             ros_arguments=['--log-level', 'warn']
         )
 
-        # kill_turtle1 = ExecuteProcess(
-        #     cmd=[[
-        #         FindExecutable(name='ros2'),
-        #         ' service call ',
-        #         namespace,
-        #         '/kill ',
-        #         'turtlesim_ds/srv/Kill ',
-        #         '"{name: turtle1}"'
-        #     ]],
-        #     shell=True
-        # )
+        kill_turtle1 = ExecuteProcess(
+            cmd=[[
+                FindExecutable(name='ros2'),
+                ' service call ',
+                namespace,
+                '/kill ',
+                'turtlesim_ds/srv/Kill ',
+                '"{name: turtle1}"'
+            ]],
+            shell=True
+        )
 
         launch_groups += [
             turtle_BT,
@@ -77,7 +77,7 @@ def namespace_launch(context):
                 name='turtle_monitor',
                 namespace=namespace,
                 parameters=[
-                    {'csv_path' : '/home/sheneman/thesis/turtle_active_auto.csv'}
+                    {'csv_path' : '/home/sheenan/thesis/turtle_active_auto_control.csv'}
                 ]
             ),
             Node(
@@ -86,12 +86,12 @@ def namespace_launch(context):
                 name='turtle_active_autopilot',
                 namespace=namespace
             ),
-            # RegisterEventHandler(
-            #     OnProcessExit(
-            #         target_action=turtle_BT,
-            #         on_exit=kill_turtle1
-            #     )
-            # )
+            RegisterEventHandler(
+                OnProcessExit(
+                    target_action=turtle_BT,
+                    on_exit=kill_turtle1
+                )
+            )
         ]
 
     return launch_groups
