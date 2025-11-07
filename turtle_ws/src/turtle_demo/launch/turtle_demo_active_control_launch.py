@@ -64,6 +64,9 @@ def namespace_launch(context):
                 executable='turtle_spawner',
                 name='turtle_spawner',
                 namespace=namespace,
+                parameters=[
+                    {'active_target' : True}
+                ]
             ),
             Node(
                 package='turtle_demo',
@@ -77,7 +80,7 @@ def namespace_launch(context):
                 name='turtle_monitor',
                 namespace=namespace,
                 parameters=[
-                    {'csv_path' : '/home/sheenan/thesis/turtle_active_auto_control.csv'}
+                    {'csv_path' : '/home/sheenan/thesis/turtle_active_control.csv'}
                 ]
             ),
             Node(
