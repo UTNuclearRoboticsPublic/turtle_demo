@@ -25,16 +25,32 @@ NodeStatus ScanSearch::onStart() {
 
     // std::cout << '[' << name() << "] " << "Rotation speed: " << rotation_speed << std::endl;
 
-    total_rotation = 0;
+    total_rotation_ = 0;
 
     // Compute current angle (Axis angle formula)
     double chaser_angle;
     double q_w = chaser_pose->pose.orientation.w;
     double q_z = chaser_pose->pose.orientation.z;
     if (q_z == 0) chaser_angle = 0;
-    else chaser_angle = 2 * acos(q_w) * q_z / abs(q_z);
+    else chaser_angle = 2 * acos(q_w) * q_z / fabs(q_z);
 
-    last_angle = chaser_angle;
+    last_angle_ = chaser_angle;
+
+    // Compute angle of displacement vector from center to chaser
+    double displacement_angle = atan2(
+            chaser_pose->pose.position.y - 5.5,
+            chaser_pose->pose.position.x - 5.5
+    );
+
+    // Get angle difference between chaser and chaser displacement
+    double direction_angle  = chaser_angle - displacement_angle;
+    // If difference is >pi then direction is wrong
+    // Add or subtract 2pi to compensate
+    if (direction_angle > M_PI) direction_angle -= 2 * M_PI;
+    else if (direction_angle < -M_PI) direction_angle += 2 * M_PI;
+
+    // Turn direction should start towards center
+    turn_direction_ = (direction_angle >= 0) ? 1 : -1;
 
     return NodeStatus::RUNNING;
 }
@@ -63,7 +79,7 @@ NodeStatus ScanSearch::onRunning() {
     else chaser_angle = 2 * acos(q_w) * q_z / abs(q_z);
 
     // Get angle difference since last tick
-    double diff_angle  = chaser_angle - last_angle;
+    double diff_angle  = chaser_angle - last_angle_;
     // If difference is >pi then direction is wrong
     // Add or subtract 2pi to compensate
     if (abs(diff_angle) > M_PI) {
@@ -75,12 +91,12 @@ NodeStatus ScanSearch::onRunning() {
         }
     }
 
-    // std::cout << '[' << name() << "] " << diff_angle << " = " << chaser_angle << " - " << last_angle << std::endl;
+    // std::cout << '[' << name() << "] " << diff_angle << " = " << chaser_angle << " - " << last_angle_ << std::endl;
 
-    total_rotation += diff_angle;
-    last_angle = chaser_angle;
+    total_rotation_ += diff_angle;
+    last_angle_ = chaser_angle;
 
-    //std::cout << '[' << name() << "] " << "Total Rotation: " << total_rotation<< "" << std::endl;
+    //std::cout << '[' << name() << "] " << "Total Rotation: " << total_rotation_<< "" << std::endl;
 
     // Target spotted if angle less than 15 degrees and target within sight radius
     if ((fabs(relative_angle) <= M_PI / 12) && (relative_dist <= 5.5)) {
@@ -90,15 +106,15 @@ NodeStatus ScanSearch::onRunning() {
     }
 
     // Fail if a full rotation is made without seeing the target
-    else if (fabs(total_rotation) >= M_PI * 2) {
+    else if (fabs(total_rotation_) >= M_PI * 2) {
         std::cout << '[' << name() << "] " << "Scan Search failed" << std::endl;
         setOutput("scan_velocity", scan_velocity);  // Zero
         return NodeStatus::FAILURE;
     }
 
     else {
-        // std::cout << '[' << name() << "] " << "Total rotation: " << total_rotation << std::endl;
-        scan_velocity.angular.z = rotation_speed;
+        // std::cout << '[' << name() << "] " << "Total rotation: " << total_rotation_ << std::endl;
+        scan_velocity.angular.z = rotation_speed * turn_direction_;
         setOutput("scan_velocity", scan_velocity);
         return NodeStatus::RUNNING;
     }

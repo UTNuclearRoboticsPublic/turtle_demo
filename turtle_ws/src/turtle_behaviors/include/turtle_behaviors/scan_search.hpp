@@ -31,7 +31,8 @@ public:
     void onHalted() override;
 
 private:
-    double total_rotation;
-    double last_angle;
+    double total_rotation_;
+    double last_angle_;
+    int turn_direction_;
 };
 } // turtle_behaviors
