@@ -20,6 +20,9 @@ public:
   TurtleSpawner() : Node("turtle_tf2_frame_listener"),
     turtle_spawned_(false)
   {
+    // Parameters
+    active_target_ = this->declare_parameter("active_target", false);
+
     // Clients
     spawner_ =
       this->create_client<turtlesim_ds::srv::Spawn>("spawn");
@@ -32,6 +35,7 @@ public:
   }
 
   bool turtle_spawned_;
+  bool active_target_;
   rclcpp::Client<turtlesim_ds::srv::TeleportAbsolute>::SharedPtr teleport_client_{nullptr};
 
 private:
@@ -90,7 +94,9 @@ int main(int argc, char * argv[])
   auto teleport_req = std::make_shared<turtlesim_ds::srv::TeleportAbsolute::Request>();
   teleport_req->x = 5.5 + radius * cos(start_angle);
   teleport_req->y = 5.5 + radius * sin(start_angle);
-  teleport_req->theta = start_angle + M_PI / 2.0;
+
+  // Inactive Target faces counter-clockwise, Active Target faces away from center
+  teleport_req->theta = start_angle + ((spawner->active_target_) ? 0.0 : M_PI / 2.0);
 
   // Call teleport service
   while (!spawner->teleport_client_->wait_for_service(std::chrono::seconds(1))) {

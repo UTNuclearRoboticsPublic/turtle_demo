@@ -183,14 +183,14 @@ private:
     rclcpp::TimerBase::SharedPtr timer_{nullptr};
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
     const double angle_threshold_ = M_PI / 6;
-    const double chaser_dist_threshold_ = 5.0;
+    const double chaser_dist_threshold_ = 5.4;
     const double min_wall_threshold_ = 4.0;
     const double max_wall_threshold_ = 5.0;
     const double turn_rate_ = 2.0;
 };
 
 int main(int argc, char* argv[]) {
-    const float speed_base = 1.2;
+    const float speed_base = 1.1;
     const float random_range = 0.2;
 
     rclcpp::init(argc, argv);
