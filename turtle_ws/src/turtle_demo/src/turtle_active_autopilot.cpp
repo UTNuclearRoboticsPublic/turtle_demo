@@ -183,7 +183,7 @@ private:
     rclcpp::TimerBase::SharedPtr timer_{nullptr};
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
     const double angle_threshold_ = M_PI / 6;
-    const double chaser_dist_threshold_ = 5.5;
+    const double chaser_dist_threshold_ = 5.0;
     const double min_wall_threshold_ = 4.0;
     const double max_wall_threshold_ = 5.0;
     const double turn_rate_ = 2.0;
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
     }
     autopilot->enable_ = true;
 
-    // Random base speed ranges from 0.8 to 1.2
+    // Random base speed ranges from 1.0 to 1.4
     const float speed = speed_base + (rand() % 201 - 100) * random_range / 100;
     autopilot->speed_ = speed;
 
