@@ -23,25 +23,10 @@ void registerTurtleBehaviors(BT::BehaviorTreeFactory& factory) {
     
     // Simple Actions
     factory.registerNodeType<turtle_behaviors::ArePosesEqual>("ArePosesEqual");
-    // factory.registerNodeType<turtle_behaviors::CenterPose>("CenterPose");
     factory.registerNodeType<turtle_behaviors::ConsumeEnergy>("ConsumeEnergy");
     factory.registerNodeType<turtle_behaviors::FindCorner>("FindCorner");
-    factory.registerNodeType<turtle_behaviors::RelativeAnglePositive>("RelativeAnglePositive");
     factory.registerNodeType<turtle_behaviors::StopTurtle>("StopTurtle");
     factory.registerNodeType<turtle_behaviors::VectorToMsg>("VectorToMsg");
-
-    factory.registerSimpleAction("CenterPose",
-        [&](TreeNode& node) {
-            static const double workspace_size = 11;
-
-            geometry_msgs::msg::PoseStamped::SharedPtr center_pose = std::make_shared<geometry_msgs::msg::PoseStamped>();
-            center_pose->pose.position.x = workspace_size / 2;
-            center_pose->pose.position.y = workspace_size / 2;
-
-            node.setOutput("center_pose", center_pose);
-            return NodeStatus::SUCCESS;
-        },
-        {OutputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("center_pose", "Pose of workspace center")});
 
     return;
 }
