@@ -20,13 +20,13 @@ public:
     static PortsList providedPorts() {
       return {
         InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("target_pose", "Last known pose of target in world frame"),
-        InputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("chaser_pose", "Pose of chaser in world frame"),
+        InputPort<double>("forward_distance", "Distance to lead in front of target"),
         OutputPort<geometry_msgs::msg::PoseStamped::SharedPtr>("predicted_pose", "Predicted pose of target to intercept")
       };
     }
 
     NodeStatus tick() override {
-      static const double forward_dist = 2.0;
+      std::cout << '[' << name() << "] " << "Predicting Target pose..." << std::endl;
 
       geometry_msgs::msg::PoseStamped::SharedPtr target_pose;
       if (!getInput("target_pose", target_pose)) {
@@ -34,9 +34,9 @@ public:
           return NodeStatus::FAILURE;
       };
 
-      geometry_msgs::msg::PoseStamped::SharedPtr chaser_pose;
-      if (!getInput("chaser_pose", chaser_pose)) {
-          std::cout << '[' << name() << "] " << "ERROR: No chaser_pose found." << std::endl;
+      double forward_distance;
+      if (!getInput("forward_distance", forward_distance)) {
+          std::cout << '[' << name() << "] " << "ERROR: No forward_distance found." << std::endl;
           return NodeStatus::FAILURE;
       };
 
@@ -47,14 +47,16 @@ public:
       if (q_z == 0) target_angle = 0;
       else target_angle = 2 * acos(q_w) * q_z / abs(q_z);
 
-      // Find a point in front of the Target
-      double predict_x = target_pose->pose.position.x + forward_dist * cos(target_angle);
-      double predict_y = target_pose->pose.position.y + forward_dist * sin(target_angle);
 
-      geometry_msgs::msg::PoseStamped::SharedPtr predicted_pose;
+      // Find a point in front of the Target
+      double predict_x = target_pose->pose.position.x + forward_distance * cos(target_angle);
+      double predict_y = target_pose->pose.position.y + forward_distance * sin(target_angle);
+
+      geometry_msgs::msg::PoseStamped::SharedPtr predicted_pose = std::make_shared<geometry_msgs::msg::PoseStamped>();
       predicted_pose->pose.position.x = predict_x;
       predicted_pose->pose.position.y = predict_y;
       setOutput("predicted_pose", predicted_pose);
+
       return NodeStatus::SUCCESS;
     }
 };

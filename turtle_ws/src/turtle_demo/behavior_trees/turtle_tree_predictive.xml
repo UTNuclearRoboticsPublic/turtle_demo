@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence>
+      <Sequence name="Setup">
+        <TurtleFrames turtle1_name="{turtle1}" turtle2_name="{turtle2}"/>
+        <SetBlackboardNode value="100" output_key="turtle2_energy"/>
+        <RetryNode num_attempts="-1" name="Wait for Turtles to Spawn">
+          <GetCurrentPose reference_frame="{turtle2}" target_frame="{turtle1}"/>
+        </RetryNode>
+        <GetCurrentPose reference_frame="world" target_frame="{turtle1}" pose="{last_known_pose}"/>
+        <TriggerService service_name="set_pens"/>
+        <RetryNode num_attempts="-1">
+          <Sequence name="Wait For Target Motion">
+            <GetCurrentPose reference_frame="world" target_frame="{turtle1}" pose="{target_pose}"/>
+            <Inverter>
+              <ArePosesEqual pose_1="{last_known_pose}" pose_2="{target_pose}"/>
+            </Inverter>
+            <TriggerService service_name="start_monitor"/>
+          </Sequence>
+        </RetryNode>
+      </Sequence>
+      <RetryNode num_attempts="-1">
+        <Fallback name="Main Loop">
+          <Sequence name="Chase Target">
+            <SubTree ID="Proximity Check" turtle1="{turtle1}" turtle2="{turtle2}"/>
+            <TriggerService service_name="target_seen"/>
+            <ReactiveSequence name="Chase Target Loop">
+              <Sequence>
+                <SubTree ID="Proximity Check" turtle1="{turtle1}" turtle2="{turtle2}"/>
+                <GetCurrentPose reference_frame="world" target_frame="{turtle1}" pose="{last_known_pose}"/>
+                <GetCurrentPose reference_frame="{turtle2}" target_frame="{turtle1}" pose="{relative_pose}"/>
+              </Sequence>
+              <ReactiveFallback name="Move or Recharge">
+                <SubTree ID="Move Turtle" velocity="{chase_velocity}" energy="{turtle2_energy}"/>
+                <Sequence name="Recharge">
+                  <RechargeEnergy max_energy="100" energy_per_second = "20" energy="{energy}" energy_msg="{energy_msg}"/>
+                  <PublishMessageToTopic topic="turtle_energy" value="{energy_msg}"/>
+                </Sequence>
+              </ReactiveFallback>
+              <ChaseTarget relative_pose="{relative_pose}" chase_velocity="{chase_velocity}"/>
+            </ReactiveSequence>
+          </Sequence>
+          <Sequence name="Search for Target">
+            <TriggerService service_name="target_lost"/>
+            <ReactiveSequence name="Search Loop">
+              <Sequence>
+                <Inverter>
+                  <SubTree ID="Proximity Check" turtle1="{turtle1}" turtle2="{turtle2}"/>
+                </Inverter>
+                <GetCurrentPose reference_frame="world" target_frame="{turtle2}" pose="{chaser_pose}"/>
+                <GetCurrentPose reference_frame="{turtle2}" target_frame="{turtle1}" pose="{relative_pose}"/>
+                <InputDataNode last_known_pose="{last_known_pose}" chaser_pose="{chaser_pose}" energy="{turtle2_energy}" data="{data}"/>
+                <ForceSuccessNode>
+                  <Sequence name="Publish Data and Utilities">
+                    <VectorToMsg vector="{data}" msg="{data_msg}"/>
+                    <VectorToMsg vector="{utils}" msg="{utils_msg}"/>
+                    <PublishMessageToTopic topic="/input_data" value="{data_msg}"/>
+                    <PublishMessageToTopic topic="/utilities" value="{utils_msg}"/>
+                  </Sequence>
+                </ForceSuccessNode>
+              </Sequence>
+              <DynamicSelector name="Search Tactics" input_data="{data}" utility_threshold="0.1" stability_threshold = "0.1" utilities="{utils}">
+                <SubTree ID="Scan Search" chaser_pose="{chaser_pose}" relative_pose="{relative_pose}" last_known_pose="{last_known_pose}" energy="{turtle2_energy}"/>
+                <SubTree ID="Predictive Scan Search" chaser_pose="{chaser_pose}" relative_pose="{relative_pose}" last_known_pose="{last_known_pose}" energy="{turtle2_energy}"/>
+                <SubTree ID="Patrol Search" chaser_pose="{chaser_pose}" energy="{turtle2_energy}"/>
+                <SubTree ID="Rest" energy="{turtle2_energy}"/>
+              </DynamicSelector>
+            </ReactiveSequence>
+            <AlwaysFailureNode/>
+          </Sequence>
+        </Fallback>
+      </RetryNode>
+      <TriggerService service_name="end_monitor"/>
+      <StopTurtle zero_velocity="{velocity}"/>
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{turtle2_energy}"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Proximity Check">
+    <!--
+      Input ports: turtle1, turtle2
+    -->
+    <Sequence>
+      <GetCurrentPose reference_frame="{turtle2}" target_frame="{turtle1}" pose="{relative_pose}"/>
+      <TargetWithinRange target_pose="{relative_pose}" range="2.0"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Move Turtle">
+    <!--
+    Bidirectional ports: velocity, energy
+    -->
+    <Fallback name="Attempt to Move">
+      <Sequence name="Move">
+        <ConsumeEnergy velocity="{velocity}" energy="{energy}" energy_msg="{energy_msg}"/>
+        <ForceSuccessNode>
+          <Sequence>
+            <PublishMessageToTopic topic="turtle2/cmd_vel" value="{velocity}"/>
+            <PublishMessageToTopic topic="turtle_energy" value="{energy_msg}"/>
+          </Sequence>
+        </ForceSuccessNode>
+      </Sequence>
+      <Sequence name="Fail to Move">
+        <StopTurtle zero_velocity="{velocity}"/>
+        <PublishMessageToTopic topic="turtle2/cmd_vel" value="{velocity}"/>
+        <AlwaysFailureNode/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Scan Search">
+    <!--
+    Input Ports: chaser_pose, relative_pose
+    Bidirectional Ports: last_known_pose, energy
+    -->
+    <ReactiveSequence name="Scan Search Loop">
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
+      <KeepRunningUntilFailure>
+        <Sequence name="Scan and Follow">
+          <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
+          <TriggerService service_name="target_seen_short"/>
+          <StopTurtle zero_velocity="{velocity}"/>
+          <TurtleFrames turtle1_name="{turtle1}" turtle2_name="{turtle2}"/>
+          <GetCurrentPose reference_frame="world" target_frame="{turtle1}" pose="{last_known_pose}"/>
+          <GoToPoint target_pose="{last_known_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
+          <StopTurtle zero_velocity="{velocity}"/>
+        </Sequence>
+      </KeepRunningUntilFailure>
+    </ReactiveSequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Predictive Scan Search">
+    <!--
+    Input Ports: chaser_pose, relative_pose
+    Bidirectional Ports: last_known_pose, energy
+    -->
+    <ReactiveSequence name="Scan Search Loop">
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
+      <KeepRunningUntilFailure>
+        <Sequence name="Scan and Follow">
+          <ScanSearch relative_pose="{relative_pose}" chaser_pose="{chaser_pose}" rotation_speed="1.0" scan_velocity="{velocity}"/>
+          <TriggerService service_name="target_seen_short"/>
+          <StopTurtle zero_velocity="{velocity}"/>
+          <TurtleFrames turtle1_name="{turtle1}" turtle2_name="{turtle2}"/>
+          <GetCurrentPose reference_frame="world" target_frame="{turtle1}" pose="{last_known_pose}"/>
+          <PredictPose target_pose="{last_known_pose}" forward_distance = "2.0" predicted_pose="{predicted_pose}"/>
+          <GoToPoint target_pose="{predicted_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
+          <StopTurtle zero_velocity="{velocity}"/>
+        </Sequence>
+      </KeepRunningUntilFailure>
+    </ReactiveSequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Patrol Search">
+    <!--
+    Input Port: chaser_pose
+    Bidirectional Port: energy
+    -->
+    <ReactiveSequence name="Patrol Search Loop">
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
+      <Sequence name="Go to Corner and Patrol">
+        <FindCorner corner_pose="{corner_pose}" radius="1.5" chaser_pose="{chaser_pose}"/>
+        <GoToPoint target_pose="{corner_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
+        <StopTurtle zero_velocity="{velocity}"/>
+        <PatrolSearch chaser_pose="{chaser_pose}" radius="2.0" chase_velocity="{velocity}"/>
+      </Sequence>
+    </ReactiveSequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Rest">
+    <!--
+    Bidirectional Port: energy
+    -->
+    <Sequence name="Stop and Rest">
+      <StopTurtle zero_velocity="{velocity}"/>
+      <SubTree ID="Move Turtle" velocity="{velocity}" energy="{energy}"/>
+      <RechargeEnergy max_energy="100" energy_per_second = "20" energy="{energy}" energy_msg="{energy_msg}"/>
+      <PublishMessageToTopic topic="turtle_energy" value="{energy_msg}"/>
+    </Sequence>
+  </BehaviorTree>
+
+</root>

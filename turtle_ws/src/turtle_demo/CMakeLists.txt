@@ -44,6 +44,9 @@ ament_target_dependencies(turtle_monitor ${THIS_PACKAGE_DEPS})
 add_executable(turtle_BT src/turtle_BT.cpp)
 ament_target_dependencies(turtle_BT ${THIS_PACKAGE_DEPS})
 
+add_executable(turtle_BT_predict src/turtle_BT_predict.cpp)
+ament_target_dependencies(turtle_BT_predict ${THIS_PACKAGE_DEPS})
+
 add_executable(turtle_autopilot src/turtle_autopilot.cpp)
 ament_target_dependencies(turtle_autopilot ${THIS_PACKAGE_DEPS})
 
@@ -73,6 +76,7 @@ install(TARGETS
     turtle_tf2_frame_publisher
     turtle_spawner
     turtle_BT
+    turtle_BT_predict
     turtle_service_handler
     turtle_monitor
     turtle_autopilot
