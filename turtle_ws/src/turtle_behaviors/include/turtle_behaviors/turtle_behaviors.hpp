@@ -10,6 +10,7 @@
 #include <turtle_behaviors/stop_turtle.hpp>
 #include <turtle_behaviors/target_within_range.hpp>
 #include <turtle_behaviors/vector_to_msg.hpp>
+#include <turtle_behaviors/predict_pose.hpp>
 
 using BT::TreeNode;
 
@@ -27,6 +28,7 @@ void registerTurtleBehaviors(BT::BehaviorTreeFactory& factory) {
     factory.registerNodeType<turtle_behaviors::FindCorner>("FindCorner");
     factory.registerNodeType<turtle_behaviors::StopTurtle>("StopTurtle");
     factory.registerNodeType<turtle_behaviors::VectorToMsg>("VectorToMsg");
+    factory.registerNodeType<turtle_behaviors::PredictPose>("PredictPose");
 
     return;
 }
