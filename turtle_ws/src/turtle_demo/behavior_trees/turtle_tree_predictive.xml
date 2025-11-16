@@ -55,8 +55,8 @@
                   <Sequence name="Publish Data and Utilities">
                     <VectorToMsg vector="{data}" msg="{data_msg}"/>
                     <VectorToMsg vector="{utils}" msg="{utils_msg}"/>
-                    <PublishMessageToTopic topic="/input_data" value="{data_msg}"/>
-                    <PublishMessageToTopic topic="/utilities" value="{utils_msg}"/>
+                    <PublishMessageToTopic topic="input_data" value="{data_msg}"/>
+                    <PublishMessageToTopic topic="utilities" value="{utils_msg}"/>
                   </Sequence>
                 </ForceSuccessNode>
               </Sequence>
@@ -144,7 +144,7 @@
           <StopTurtle zero_velocity="{velocity}"/>
           <TurtleFrames turtle1_name="{turtle1}" turtle2_name="{turtle2}"/>
           <GetCurrentPose reference_frame="world" target_frame="{turtle1}" pose="{last_known_pose}"/>
-          <PredictPose target_pose="{last_known_pose}" forward_distance = "2.0" predicted_pose="{predicted_pose}"/>
+          <PredictPose target_pose="{last_known_pose}" forward_distance = "4.0" predicted_pose="{predicted_pose}"/>
           <GoToPoint target_pose="{predicted_pose}" chaser_pose="{chaser_pose}" chase_velocity="{velocity}"/>
           <StopTurtle zero_velocity="{velocity}"/>
         </Sequence>

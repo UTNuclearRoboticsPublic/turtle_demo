@@ -50,7 +50,7 @@ NodeStatus ScanSearch::onStart() {
     else if (direction_angle < -M_PI) direction_angle += 2 * M_PI;
 
     // Turn direction should start towards center
-    turn_direction_ = (direction_angle >= 0) ? 1 : -1;
+    turn_direction_ = (direction_angle >= -0.01) ? 1 : -1;
 
     return NodeStatus::RUNNING;
 }

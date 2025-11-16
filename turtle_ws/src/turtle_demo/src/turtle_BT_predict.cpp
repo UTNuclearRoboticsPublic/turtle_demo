@@ -172,15 +172,15 @@ int main(int argc, char** argv) {
         5.5,     // Line of Sight
         5.5,     // Chaser Displacement
         100.0,   // Energy
-        10.0,    // Sighting Count
+        5.0,     // Sighting Count
         5.0,     // Scan Search Fails
         5.0,     // Predictive Search Fails
         5.0,     // Patrol Search Fails
         1.0,     // Rest Fails
     };
     std::vector<std::vector<double>> weights = {
-        {-1.00,  1.00, -0.50,  0.50,  0.00, -0.50,  0.00,  0.00,  0.00},
-        {-1.00,  1.00, -0.50,  0.50,  1.00,  0.00, -0.50,  0.00,  0.00},
+        {-1.00,  1.00, -0.50,  0.50, -0.50, -0.50,  0.00,  0.00,  0.00},
+        {-1.00,  1.00, -0.50,  0.50,  0.50,  0.00, -0.50,  0.00,  0.00},
         { 1.00,  0.00,  1.0,   0.50,  0.00,  0.00,  0.00, -0.50,  0.00},
         { 0.00,  0.00,  0.00, -1.00,  0.00,  0.00,  0.00,  0.00,  0.00}
     };

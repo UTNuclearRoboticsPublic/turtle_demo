@@ -77,7 +77,7 @@ def namespace_launch(context):
                 name='turtle_monitor',
                 namespace=namespace,
                 parameters=[
-                    {'csv_path' : '/home/sheneman/thesis/turtle_auto.csv'}
+                    {'csv_path' : '/home/sheenan/thesis/turtle_auto_predict.csv'}
                 ]
             ),
             Node(
