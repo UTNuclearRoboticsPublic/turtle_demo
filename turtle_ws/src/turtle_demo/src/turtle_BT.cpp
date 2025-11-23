@@ -151,15 +151,13 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Get namespace
-    std::string ns = "";
-    for (int i = 0; i < argc; i++) {
-        std::string argv_string = argv[i];
-        if (argv_string.substr(0, 4) == "__ns") ns = argv_string.substr(6);
-    }
+    // Create BT node for NRG behaviors
+    auto bt_node = std::make_shared<rclcpp::Node>("turtle_BT");
+    std::string ns = bt_node->get_namespace();
 
+    // Register NRG behaviors
     BT::BehaviorTreeFactory factory;
-    nrg_utility_behaviors::Config config = {.sub_namespace=ns};
+    nrg_utility_behaviors::Config config = {.sub_namespace=ns, .ros_node=bt_node,};
     nrg_utility_behaviors::registerBehaviors(factory, config);
 
     // Define max inputs and weights

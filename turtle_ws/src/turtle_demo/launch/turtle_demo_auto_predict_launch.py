@@ -14,7 +14,6 @@ def namespace_launch(context):
         turtle_BT = Node(
             package='turtle_demo',
             executable='turtle_BT_predict',
-            name='turtle_BT',
             namespace=namespace,
             output='screen',
             arguments=['/home/sheenan/thesis/turtle_ws/src/turtle_demo/behavior_trees/turtle_tree_predictive.xml'],

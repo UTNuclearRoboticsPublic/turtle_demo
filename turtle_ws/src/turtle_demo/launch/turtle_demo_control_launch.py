@@ -32,7 +32,6 @@ def generate_launch_description():
         Node(
             package='turtle_demo',
             executable='turtle_BT',
-            name='turtle_BT',
             output='screen',
             arguments=['/home/sheneman/thesis/turtle_ws/src/turtle_demo/behavior_trees/control_tree.xml'],
             ros_arguments=['--log-level', 'warn']

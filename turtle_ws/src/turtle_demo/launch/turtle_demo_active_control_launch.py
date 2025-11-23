@@ -14,7 +14,6 @@ def namespace_launch(context):
         turtle_BT = Node(
             package='turtle_demo',
             executable='turtle_BT',
-            name='turtle_BT',
             namespace=namespace,
             output='screen',
             arguments=['/home/sheenan/thesis/turtle_ws/src/turtle_demo/behavior_trees/control_tree.xml'],
@@ -80,7 +79,7 @@ def namespace_launch(context):
                 name='turtle_monitor',
                 namespace=namespace,
                 parameters=[
-                    {'csv_path' : '/home/sheenan/thesis/turtle_active_control.csv'}
+                    {'csv_path' : '/home/sheenan/thesis/turtle_active_control_hide.csv'}
                 ]
             ),
             Node(
