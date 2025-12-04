@@ -6,9 +6,6 @@
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "tf2/exceptions.h"
-#include "tf2_ros/transform_listener.h"
-#include "tf2_ros/buffer.h"
 #include "turtlesim_ds/srv/spawn.hpp"
 #include "turtlesim_ds/srv/teleport_absolute.hpp"
 
@@ -17,7 +14,7 @@ using namespace std::chrono_literals;
 class TurtleSpawner : public rclcpp::Node
 {
 public:
-  TurtleSpawner() : Node("turtle_tf2_frame_listener"),
+  TurtleSpawner() : Node("turtle_spawner"),
     turtle_spawned_(false)
   {
     // Parameters
@@ -73,8 +70,6 @@ private:
   rclcpp::Client<turtlesim_ds::srv::Spawn>::SharedPtr spawner_{nullptr};
   rclcpp::TimerBase::SharedPtr timer_{nullptr};
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr publisher_{nullptr};
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
-  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
   std::string target_frame_;
 };
 
