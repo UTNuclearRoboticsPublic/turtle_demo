@@ -7,3 +7,7 @@
 [submodule "turtle_ws/src/dynamic_selector"]
 	path = turtle_ws/src/dynamic_selector
 	url = git@github.com:UTNuclearRobotics/dynamic_selector.git
+[submodule "turtle_ws/src/ros_tutorials"]
+	path = turtle_ws/src/ros_tutorials
+	url = git@github.com:sheenanUT/ros_tutorials.git
+	branch = humble
